@@ -1,0 +1,23 @@
+{
+  "peerDependencies": {
+    "primevue": "^4.3.9",
+    "vue": "^3.5.13",
+    "vue-i18n": "^9.14.3"
+  },
+  "devDependencies": {
+    "@comfyorg/comfyui-frontend-types": "^1.36.0",
+    "@vitejs/plugin-vue": "^5.2.3",
+    "vite": "^6.3.5",
+    "vite-plugin-vue-devtools": "^7.7.2"
+  },
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@primeuix/themes": "^1.2.3",
+    "@types/node": "^24.3.1",
+    "konva": "^10.2.0",
+    "primeicons": "^7.0.0",
+    "vue-konva": "^3.4.0"
+  }
+}

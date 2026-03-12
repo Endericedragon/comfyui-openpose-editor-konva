@@ -1,0 +1,342 @@
+<script setup lang="ts">
+import 'primeicons/primeicons.css'
+import { Button, Slider } from "primevue";
+import { ref, onMounted, onUnmounted, nextTick, computed } from "vue";
+import Konva from "konva";
+import { Stage as VStage, Layer as VLayer, Circle as VCircle, Line as VLine, Image as VImage, Rect as VRect } from 'vue-konva';
+import { setMousePattern, resetMousePattern } from "@/myUtils";
+import { CameraStatus } from "@/statusCache";
+import { DEFAULT_JOINTS, DEFAULT_BONES, scaleJoints, SerializedJoints } from "@/defaultCoco18";
+
+const SCALE_BY = 1.1;
+// 从外界传入宽度和高度。
+const props = defineProps({
+  width: {
+    type: Number,
+    default: 512,
+  },
+  height: {
+    type: Number,
+    default: 512,
+  },
+});
+const [stageWidth, stageHeight] = [props.width, props.height];
+// 初始的关节位置、名字和颜色。
+const joints = ref(DEFAULT_JOINTS());
+// 缩放关节位置，使其适应舞台大小。
+scaleJoints(joints.value, stageWidth, stageHeight);
+// 初始的骨头连接关系和颜色。均为定值。
+const bones = ref(DEFAULT_BONES);
+// 舞台的一些配置。
+const stageRef = ref<Konva.Stage>();
+const currentStageScale = ref(1.0);
+const stageConfig = ref({
+  width: stageWidth,
+  height: stageHeight,
+  scaleX: currentStageScale,
+  scaleY: currentStageScale,
+});
+// 背景图片和黑幕的配置。
+const rectConfig = ref({
+  width: stageWidth,
+  height: stageHeight,
+  fill: "black",
+  stroke: "grey",
+  strokeWidth: 4,
+});
+const showBackground = ref(true);
+const bgOpacity = ref(0.4);
+const imgTag = new Image();
+imgTag.src = "";
+imgTag.style.overflow = "hidden";
+const bgScale = ref({ x: 1, y: 1 });
+const bgConfig = ref({
+  image: imgTag,
+  scale: bgScale,
+  opacity: bgOpacity,
+});
+// 背景图片加载完成后，根据图片的宽高比设置缩放比例。
+imgTag.onload = _ => {
+  bgScale.value = {
+    x: stageWidth / imgTag.width,
+    y: stageHeight / imgTag.height
+  };
+};
+
+/**
+ * 处理关节移动，将关节的新位置传导回joints数组中。
+ * bones会跟着变化的。
+ */
+function handleJointMove(e: Konva.KonvaEventObject<DragEvent>) {
+  const target = e.target;
+  const targetId = parseInt(target?.id());
+  const targetX = target?.x();
+  const targetY = target?.y();
+  joints.value[targetId].x = targetX;
+  joints.value[targetId].y = targetY;
+}
+/**
+ * 导出骨骼图的Base64编码
+ */
+async function handleSaveImage() {
+  const stage = stageRef.value?.getStage();
+  if (!stage) { return; }
+  // 隐藏背景
+  showBackground.value = false;
+  // 重置相机
+  const cs = CameraStatus.from(stage);
+  if (!cs) { return; }
+  handleCameraReset();
+  // 等待渲染完成
+  await nextTick();
+  stage.batchDraw();
+  const imgBase64 = stage.toDataURL();
+  // 恢复相机
+  cs.set(stage);
+  currentStageScale.value = cs.scale;
+  // 恢复背景
+  showBackground.value = true;
+  // 等待渲染完成
+  await nextTick();
+  stage.batchDraw();
+  navigator.clipboard.writeText(imgBase64);
+}
+/**
+ * 重置相机位置和缩放比例
+ */
+function handleCameraReset() {
+  const stage = stageRef.value?.getStage();
+  if (!stage) { return; }
+  stage.setAttrs({
+    x: 0,
+    y: 0,
+    scaleX: 1,
+    scaleY: 1,
+  });
+  currentStageScale.value = 1.0;
+}
+/**
+ * 处理舞台鼠标按下事件，如果按下的是鼠标中键，则将舞台设置为可拖动状态。
+ */
+function handleStagePress(e: Konva.KonvaEventObject<MouseEvent>) {
+  const mouseKey = e.evt.button;
+  if (mouseKey === 1) {
+    // Middle key
+    e.evt.preventDefault();
+    stageRef.value?.getStage()?.draggable(true);
+    setMousePattern();
+  }
+}
+/**
+ * 处理鼠标在任意地方释放的事件，若释放的是中键，则将舞台设置为不可拖动状态。
+ */
+function handleMouseRelease(e: MouseEvent) {
+  const mouseKey = e.button;
+  const stage = stageRef.value?.getStage();
+  if (mouseKey === 1) {
+    // Middle key
+    e.preventDefault();
+    if (stage && stage.draggable()) {
+      stage.draggable(false);
+    }
+    resetMousePattern();
+  }
+}
+/**
+ * 处理鼠标滚轮事件，实现缩放功能。
+ */
+function handleWheel(e: Konva.KonvaEventObject<WheelEvent>) {
+  e.evt.preventDefault();
+  // 通过滚轮的滚动方向来确定缩放的倍数。
+  const delta = e.evt.deltaY;
+  // 计算新的缩放比例。
+  const stage = stageRef.value?.getStage();
+  if (!stage) { return; }
+  // 由于总是XY同步缩放，因此只获取其中一个就足够了
+  const originalScale = stage.scaleX();
+  const newScale = delta < 0 ? originalScale * SCALE_BY : originalScale / SCALE_BY;
+  // 计算鼠标在舞台上的位置。
+  const mousePos = stage.getPointerPosition();
+  if (!mousePos) { return; }
+  const [oldX, oldY] = [mousePos.x - stage.x(), mousePos.y - stage.y()];
+  stage.setAttrs({
+    x: stage.x() - oldX * (newScale / originalScale - 1),
+    y: stage.y() - oldY * (newScale / originalScale - 1),
+  });
+  currentStageScale.value = newScale;
+}
+/**
+ * 导出骨骼图的JSON编码
+ */
+function handleSaveSkeleton() {
+  const serializedJoints = SerializedJoints.fromJoints(joints.value, stageWidth, stageHeight);
+  const jsonStr = serializedJoints.serialize();
+  navigator.clipboard.writeText(jsonStr);
+}
+/**
+ * 加载背景图片
+ */
+const fileInputRef = ref<HTMLInputElement>();
+function triggerLoadImg() {
+  fileInputRef.value?.click();
+}
+function uploadFileInEvent(
+  e: Event, expectedType: string, wantPlainText: boolean = true, callbackFn: (result: string) => void
+) {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) {
+    alert("No file selected!");
+    return;
+  }
+  // 类型检查
+  if (!file.type.startsWith(expectedType)) {
+    alert(`Expect ${expectedType}, but found ${file.type}!`);
+    return;
+  }
+  // 读取为base64或纯文本
+  const reader = new FileReader();
+  reader.onerror = (e) => {
+    alert("Failed to read file! " + e.target?.error);
+  };
+  reader.onload = (e) => {
+    const result = e.target?.result as string;
+    callbackFn(result);
+  }
+  if (wantPlainText) {
+    reader.readAsText(file);
+  } else {
+    reader.readAsDataURL(file);
+  }
+  input.value = "";
+}
+function handleLoadImg(e: Event) {
+  uploadFileInEvent(e, "image/", false, (base64str) => {
+    imgTag.src = base64str;
+    // 之前已经设计过imgTag.onload 事件，因此这里不需要再处理。
+  });
+}
+// 加载骨骼图JSON文件
+const jsonInputRef = ref<HTMLInputElement>();
+function triggerLoadSkeleton() {
+  jsonInputRef.value?.click();
+}
+function handleLoadSkeleton(e: Event) {
+  uploadFileInEvent(e, "application/json", true, (result) => {
+    joints.value = SerializedJoints.deserialize(result).toJoints();
+  });
+}
+// 配置全局事件监听器，保证中键释放时关闭画布拖拽。
+// 同时，处理窗口大小变化时的事件，更新实际宽度。
+const skeletonContainer = ref<Element>();
+let actualWidth = ref(0);
+function handleResize() {
+  actualWidth.value = skeletonContainer.value?.clientWidth || 0;
+}
+onMounted(() => {
+  skeletonContainer.value = document.getElementsByClassName("skeleton-container")[0];
+  handleResize();
+  window.addEventListener("resize", handleResize);
+  window.addEventListener("mouseup", handleMouseRelease);
+});
+onUnmounted(() => {
+  window.removeEventListener("mouseup", handleMouseRelease);
+  window.removeEventListener("resize", handleResize);
+});
+</script>
+
+<template>
+  <!-- <span>Actual Width: {{ actualWidth }}</span> -->
+  <!-- 隐藏的输入栏，点击它就会加载图片并触发@change函数 -->
+  <div style="display: none">
+    <input type="file" ref="fileInputRef" accept="image/*" @change="handleLoadImg" />
+    <input type="file" ref="jsonInputRef" accept="application/json" @change="handleLoadSkeleton" />
+  </div>
+
+  <div class="row" :style="{ 'max-width': actualWidth + 'px' }">
+    <!-- <div class="row"> -->
+    <Slider id="opacity-slider" v-model="bgOpacity" :max="1" :step="0.02" v-tooltip.bottom="'Background Opacity'">
+    </Slider>
+    <Button @click="handleCameraReset" v-tooltip.bottom="'Camera Reset'">
+      <i class="pi pi-undo"></i>
+    </Button>
+    <Button @click="handleSaveImage" v-tooltip.bottom="'Copy Image Base64'">
+      <i class="pi pi-clipboard"></i>
+    </Button>
+    <Button @click="triggerLoadSkeleton" v-tooltip.bottom="'Load Skeleton JSON'">
+      <i class="pi pi-upload"></i>
+    </Button>
+    <Button @click="handleSaveSkeleton" v-tooltip.bottom="'Copy Skeleton JSON'">
+      <i class="pi pi-save"></i>
+    </Button>
+    <Button @click="triggerLoadImg" v-tooltip.bottom="'Load Background'">
+      <i class="pi pi-image"></i>
+    </Button>
+  </div>
+  <div class="skeleton-container">
+    <v-stage :config="stageConfig" ref="stageRef" @mousedown="handleStagePress" @wheel="handleWheel">
+      <v-layer>
+        <v-rect :config="rectConfig"></v-rect>
+      </v-layer>
+      <v-layer>
+        <v-image :visible="showBackground" :config="bgConfig" />
+      </v-layer>
+      <v-layer>
+        <v-line v-for="(bone, idx) in bones" :key="'bone-' + idx" :config="{
+          points: bone.getKonvaBonePoints(joints),
+          stroke: bone.color,
+          // strokeWidth: 5,
+          strokeWidth: 5 / currentStageScale,
+        }"></v-line>
+
+        <v-circle class="sk-joint" v-for="(joint, idx) in joints" :config="{
+          id: `${idx}`,
+          x: joint.x,
+          y: joint.y,
+          // radius: 4,
+          radius: 4 / currentStageScale,
+          draggable: true,
+          fill: joint.color,
+        }" @dragmove="handleJointMove" @mouseover="setMousePattern" @mouseout="resetMousePattern"></v-circle>
+      </v-layer>
+    </v-stage>
+  </div>
+</template>
+
+<style scoped>
+.skeleton-container {
+  max-width: 80vw;
+  max-height: 70vh;
+  overflow: hidden;
+  border: dotted grey;
+}
+
+.sk-joint:hover {
+  cursor: pointer;
+}
+
+.row {
+  width: 100%;
+  position: absolute;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 0.5em;
+}
+
+.row>* {
+  margin: 0 0.2em;
+  transition: 0.2s;
+  opacity: 0.4;
+  z-index: 1 !important;
+}
+
+.row>*:hover {
+  opacity: 1;
+}
+
+#opacity-slider {
+  width: 100%;
+  margin: 1.2em;
+}
+</style>
