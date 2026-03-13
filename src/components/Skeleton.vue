@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import 'primeicons/primeicons.css'
-import { Button, Slider } from "primevue";
-import { ref, onMounted, onUnmounted, nextTick, computed } from "vue";
+import Button from "primevue/button";
+import Slider from "primevue/slider";
+import { ref, onMounted, onUnmounted, nextTick } from "vue";
 import Konva from "konva";
 import { Stage as VStage, Layer as VLayer, Circle as VCircle, Line as VLine, Image as VImage, Rect as VRect } from 'vue-konva';
 import { setMousePattern, resetMousePattern } from "@/myUtils";
@@ -254,9 +255,7 @@ onUnmounted(() => {
   </div>
 
   <div class="oe-row" :style="{ 'max-width': actualWidth + 'px' }">
-    <!-- <div class="row"> -->
-    <Slider id="opacity-slider" v-model="bgOpacity" :max="1" :step="0.02" v-tooltip.bottom="'Background Opacity'">
-    </Slider>
+    <Slider id="opacity-slider" v-model="bgOpacity" :max="1" :step="0.02" v-tooltip.bottom="'Background Opacity'" />
     <Button @click="handleCameraReset" v-tooltip.bottom="'Camera Reset'">
       <i class="pi pi-undo"></i>
     </Button>
@@ -338,5 +337,6 @@ onUnmounted(() => {
 #opacity-slider {
   width: 100%;
   margin: 1.2em;
+  border: solid red;
 }
 </style>

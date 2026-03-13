@@ -9,7 +9,7 @@ import { comfyApp, utils, postTextData, EVENTS } from "./constants.js";
 import App from "./App.vue"
 
 // extensions/comfyui-mdnotes是固定的，后续内容和/web目录有关
-const CSS_PATH = "extensions/comfyui-mdnotes/assets/style.css";
+const CSS_PATH = "extensions/comfyui-openpose-editor-konva/assets/style.css";
 utils.addStylesheet(CSS_PATH);
 
 
