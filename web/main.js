@@ -9652,7 +9652,7 @@ var Nr, Qr = (Nr = ((r2, e2) => {
 })({}, e$R), e(Nr, m({ components: { accordion: c$p, autocomplete: a$F, avatar: n$B, badge: d$v, blockui: o$1h, breadcrumb: t$C, button: e$Q, card: d$u, carousel: t$A, cascadeselect: f$8, checkbox: e$N, chip: s$8, colorpicker: s$7, confirmdialog: r$15, confirmpopup: a$A, contextmenu: c$k, datatable: k$2, dataview: c$i, datepicker: k$1, dialog: e$F, divider: t$v, dock: d$o, drawer: e$D, editor: l$a, fieldset: e$B, fileupload: i$j, floatlabel: d$k, galleria: l$9, iconfield: r$S, iftalabel: i$g, image: e$y, imagecompare: r$Q, inlinemessage: a$q, inplace: n$q, inputchips: f$4, inputgroup: o$O, inputnumber: a$p, inputotp: e$v, inputtext: d$h, knob: c$f, listbox: n$o, megamenu: g$1, menu: r$G, menubar: e$s, message: u$3, metergroup: b$2, multiselect: n$j, orderlist: o$D, organizationchart: n$i, overlaybadge: t$i, paginator: n$h, panel: a$h, panelmenu: a$g, password: n$e, picklist: o$w, popover: e$k, progressbar: t$e, progressspinner: r$s, radiobutton: e$i, rating: i$8, ripple: o$q, scrollpanel: a$d, select: n$d, selectbutton: d$9, skeleton: o$m, slider: a$a, speeddial: a$9, splitbutton: d$8, splitter: t$b, stepper: i$6, steps: c$9, tabmenu: n$8, tabs: i$5, tabview: e$b, tag: n$5, terminal: e$a, textarea: d$5, tieredmenu: c$5, timeline: d$4, toast: u$2, togglebutton: c$3, toggleswitch: c$2, toolbar: r$5, tooltip: e$5, tree: d$2, treeselect: a$2, treetable: k, virtualscroller: e$1 } })));
 const cuWin = window;
 const comfyApp = cuWin.comfyAPI.app.app;
-cuWin.comfyAPI.utils;
+const utils = cuWin.comfyAPI.utils;
 const EVENTS$1 = {
   showEditor: "showOpenPoseEditorKonva"
 };
@@ -12554,7 +12554,7 @@ function _toPrimitive$1(t2, r2) {
 }
 var _hoisted_1$2 = ["data-p"];
 var _hoisted_2$2 = ["aria-labelledby", "aria-modal", "data-p"];
-var _hoisted_3$1 = ["id"];
+var _hoisted_3$2 = ["id"];
 var _hoisted_4$1 = ["data-p"];
 function render$3(_ctx, _cache, $props, $setup, $data, $options) {
   var _component_Button = resolveComponent("Button");
@@ -12621,7 +12621,7 @@ function render$3(_ctx, _cache, $props, $setup, $data, $options) {
               key: 0,
               id: $options.ariaLabelledById,
               "class": _ctx.cx("title")
-            }, _ctx.ptm("title")), toDisplayString(_ctx.header), 17, _hoisted_3$1)) : createCommentVNode("", true)];
+            }, _ctx.ptm("title")), toDisplayString(_ctx.header), 17, _hoisted_3$2)) : createCommentVNode("", true)];
           }), createBaseVNode("div", mergeProps({
             "class": _ctx.cx("headerActions")
           }, _ctx.ptm("headerActions")), [_ctx.maximizable ? renderSlot(_ctx.$slots, "maximizebutton", {
@@ -13176,7 +13176,7 @@ var script = {
 };
 var _hoisted_1$1 = ["data-p"];
 var _hoisted_2$1 = ["data-p"];
-var _hoisted_3 = ["tabindex", "aria-valuemin", "aria-valuenow", "aria-valuemax", "aria-labelledby", "aria-label", "aria-orientation", "data-p"];
+var _hoisted_3$1 = ["tabindex", "aria-valuemin", "aria-valuenow", "aria-valuemax", "aria-labelledby", "aria-label", "aria-orientation", "data-p"];
 var _hoisted_4 = ["tabindex", "aria-valuemin", "aria-valuenow", "aria-valuemax", "aria-labelledby", "aria-label", "aria-orientation", "data-p"];
 var _hoisted_5 = ["tabindex", "aria-valuemin", "aria-valuenow", "aria-valuemax", "aria-labelledby", "aria-label", "aria-orientation", "data-p"];
 function render(_ctx, _cache, $props, $setup, $data, $options) {
@@ -13225,7 +13225,7 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     "aria-orientation": _ctx.orientation
   }, _ctx.ptm("handle"), {
     "data-p": $options.dataP
-  }), null, 16, _hoisted_3)) : createCommentVNode("", true), _ctx.range ? (openBlock(), createElementBlock("span", mergeProps({
+  }), null, 16, _hoisted_3$1)) : createCommentVNode("", true), _ctx.range ? (openBlock(), createElementBlock("span", mergeProps({
     key: 1,
     "class": _ctx.cx("handle"),
     style: [_ctx.sx("handle"), $options.rangeStartHandleStyle()],
@@ -25023,7 +25023,8 @@ class SerializedJoints {
   }
 }
 const _hoisted_1 = { style: { "display": "none" } };
-const _hoisted_2 = { class: "skeleton-container" };
+const _hoisted_2 = { class: "oe-row" };
+const _hoisted_3 = { class: "skeleton-container" };
 const SCALE_BY = 1.1;
 const _sfc_main$1 = /* @__PURE__ */ defineComponent({
   __name: "Skeleton",
@@ -25242,118 +25243,122 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
             onChange: handleLoadSkeleton
           }, null, 544)
         ]),
-        createVNode(unref(script$3), null, {
-          default: withCtx(() => [
-            createVNode(unref(script$2), null, {
-              default: withCtx(() => [
-                withDirectives((openBlock(), createBlock(unref(script$8), { onClick: handleCameraReset }, {
-                  default: withCtx(() => [..._cache[1] || (_cache[1] = [
-                    createBaseVNode("i", { class: "pi pi-undo" }, null, -1)
-                  ])]),
-                  _: 1
-                })), [
-                  [
-                    _directive_tooltip,
-                    "Camera Reset",
-                    void 0,
-                    { bottom: true }
-                  ]
-                ])
-              ]),
-              _: 1
-            }),
-            createVNode(unref(script$2), null, {
-              default: withCtx(() => [
-                withDirectives((openBlock(), createBlock(unref(script$8), { onClick: handleSaveImage }, {
-                  default: withCtx(() => [..._cache[2] || (_cache[2] = [
-                    createBaseVNode("i", { class: "pi pi-clipboard" }, null, -1)
-                  ])]),
-                  _: 1
-                })), [
-                  [
-                    _directive_tooltip,
-                    "Copy Image Base64",
-                    void 0,
-                    { bottom: true }
-                  ]
-                ])
-              ]),
-              _: 1
-            }),
-            createVNode(unref(script$2), null, {
-              default: withCtx(() => [
-                withDirectives((openBlock(), createBlock(unref(script$8), { onClick: triggerLoadSkeleton }, {
-                  default: withCtx(() => [..._cache[3] || (_cache[3] = [
-                    createBaseVNode("i", { class: "pi pi-upload" }, null, -1)
-                  ])]),
-                  _: 1
-                })), [
-                  [
-                    _directive_tooltip,
-                    "Load Skeleton JSON",
-                    void 0,
-                    { bottom: true }
-                  ]
-                ])
-              ]),
-              _: 1
-            }),
-            createVNode(unref(script$2), null, {
-              default: withCtx(() => [
-                withDirectives((openBlock(), createBlock(unref(script$8), { onClick: handleSaveSkeleton }, {
-                  default: withCtx(() => [..._cache[4] || (_cache[4] = [
-                    createBaseVNode("i", { class: "pi pi-save" }, null, -1)
-                  ])]),
-                  _: 1
-                })), [
-                  [
-                    _directive_tooltip,
-                    "Copy Skeleton JSON",
-                    void 0,
-                    { bottom: true }
-                  ]
-                ])
-              ]),
-              _: 1
-            }),
-            createVNode(unref(script$2), null, {
-              default: withCtx(() => [
-                withDirectives((openBlock(), createBlock(unref(script$8), { onClick: triggerLoadImg }, {
-                  default: withCtx(() => [..._cache[5] || (_cache[5] = [
-                    createBaseVNode("i", { class: "pi pi-image" }, null, -1)
-                  ])]),
-                  _: 1
-                })), [
-                  [
-                    _directive_tooltip,
-                    "Load Background",
-                    void 0,
-                    { bottom: true }
-                  ]
-                ])
-              ]),
-              _: 1
-            })
-          ]),
-          _: 1
-        }),
-        createBaseVNode("div", null, [
-          withDirectives(createVNode(unref(script), {
-            id: "opacity-slider",
-            modelValue: bgOpacity.value,
-            "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => bgOpacity.value = $event),
-            max: 1,
-            step: 0.02
-          }, null, 8, ["modelValue"]), [
-            [
-              _directive_tooltip,
-              "Background Opacity",
-              void 0,
-              { bottom: true }
-            ]
-          ])
-        ]),
         createBaseVNode("div", _hoisted_2, [
+          createVNode(unref(script$3), null, {
+            default: withCtx(() => [
+              createVNode(unref(script$2), null, {
+                default: withCtx(() => [
+                  withDirectives((openBlock(), createBlock(unref(script$8), { onClick: handleCameraReset }, {
+                    default: withCtx(() => [..._cache[1] || (_cache[1] = [
+                      createBaseVNode("i", { class: "pi pi-undo" }, null, -1)
+                    ])]),
+                    _: 1
+                  })), [
+                    [
+                      _directive_tooltip,
+                      "Camera Reset",
+                      void 0,
+                      { bottom: true }
+                    ]
+                  ])
+                ]),
+                _: 1
+              }),
+              createVNode(unref(script$2), null, {
+                default: withCtx(() => [
+                  withDirectives((openBlock(), createBlock(unref(script$8), { onClick: handleSaveImage }, {
+                    default: withCtx(() => [..._cache[2] || (_cache[2] = [
+                      createBaseVNode("i", { class: "pi pi-clipboard" }, null, -1)
+                    ])]),
+                    _: 1
+                  })), [
+                    [
+                      _directive_tooltip,
+                      "Copy Image Base64",
+                      void 0,
+                      { bottom: true }
+                    ]
+                  ])
+                ]),
+                _: 1
+              }),
+              createVNode(unref(script$2), null, {
+                default: withCtx(() => [
+                  withDirectives((openBlock(), createBlock(unref(script$8), { onClick: triggerLoadSkeleton }, {
+                    default: withCtx(() => [..._cache[3] || (_cache[3] = [
+                      createBaseVNode("i", { class: "pi pi-upload" }, null, -1)
+                    ])]),
+                    _: 1
+                  })), [
+                    [
+                      _directive_tooltip,
+                      "Load Skeleton JSON",
+                      void 0,
+                      { bottom: true }
+                    ]
+                  ])
+                ]),
+                _: 1
+              }),
+              createVNode(unref(script$2), null, {
+                default: withCtx(() => [
+                  withDirectives((openBlock(), createBlock(unref(script$8), { onClick: handleSaveSkeleton }, {
+                    default: withCtx(() => [..._cache[4] || (_cache[4] = [
+                      createBaseVNode("i", { class: "pi pi-save" }, null, -1)
+                    ])]),
+                    _: 1
+                  })), [
+                    [
+                      _directive_tooltip,
+                      "Copy Skeleton JSON",
+                      void 0,
+                      { bottom: true }
+                    ]
+                  ])
+                ]),
+                _: 1
+              }),
+              createVNode(unref(script$2), null, {
+                default: withCtx(() => [
+                  withDirectives((openBlock(), createBlock(unref(script$8), { onClick: triggerLoadImg }, {
+                    default: withCtx(() => [..._cache[5] || (_cache[5] = [
+                      createBaseVNode("i", { class: "pi pi-image" }, null, -1)
+                    ])]),
+                    _: 1
+                  })), [
+                    [
+                      _directive_tooltip,
+                      "Load Background",
+                      void 0,
+                      { bottom: true }
+                    ]
+                  ])
+                ]),
+                _: 1
+              }),
+              createVNode(unref(script$2), { class: "opacity-slider" }, {
+                default: withCtx(() => [
+                  withDirectives(createVNode(unref(script), {
+                    modelValue: bgOpacity.value,
+                    "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => bgOpacity.value = $event),
+                    max: 1,
+                    step: 0.02
+                  }, null, 8, ["modelValue"]), [
+                    [
+                      _directive_tooltip,
+                      "Background Opacity",
+                      void 0,
+                      { bottom: true }
+                    ]
+                  ])
+                ]),
+                _: 1
+              })
+            ]),
+            _: 1
+          })
+        ]),
+        createBaseVNode("div", _hoisted_3, [
           createVNode(unref(Y), {
             config: stageConfig.value,
             ref_key: "stageRef",
@@ -25425,7 +25430,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-b6c73c13"]]);
+const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-595d6bd5"]]);
 const _sfc_main = /* @__PURE__ */ defineComponent({
   __name: "App",
   setup(__props) {
@@ -25461,6 +25466,8 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
     };
   }
 });
+const CSS_PATH = "extensions/comfyui-openpose-editor-konva/assets/style.css";
+utils.addStylesheet(CSS_PATH);
 comfyApp.registerExtension({
   name: "endericedragon.comfyui-openpose-editor-konva",
   settings: [
@@ -25499,6 +25506,7 @@ comfyApp.registerExtension({
     mountPoint.id = "oe-konva-ui";
     document.body.appendChild(mountPoint);
     createApp(_sfc_main).use(PrimeVue, {
+      // 不指定主题就爆炸，这是什么鬼事情？
       theme: {
         preset: Qr
       }

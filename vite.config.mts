@@ -14,7 +14,7 @@ export default defineConfig({
             entry: resolve(__dirname, './src/main.ts'),
             formats: ['es'],
             fileName: 'main',
-            cssFileName: "style.css"
+            cssFileName: "style"
         },
         rollupOptions: {
             output: {

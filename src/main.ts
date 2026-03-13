@@ -4,14 +4,15 @@ import { createApp } from "vue"
 import PrimeVue from "primevue/config";
 import Tooltip from 'primevue/tooltip';
 import Aura from '@primeuix/themes/aura';
+// import Nora from '@primeuix/themes/nora';
 
 // shared data types
 import { comfyApp, utils, postTextData, EVENTS } from "./constants.js";
 import App from "./App.vue"
 
 // extensions/comfyui-openpose-editor-konva是固定的，后续内容和/web目录有关
-// const CSS_PATH = "extensions/comfyui-openpose-editor-konva/assets/style.css";
-// utils.addStylesheet(CSS_PATH);
+const CSS_PATH = "extensions/comfyui-openpose-editor-konva/assets/style.css";
+utils.addStylesheet(CSS_PATH);
 
 comfyApp.registerExtension({
     name: "endericedragon.comfyui-openpose-editor-konva",
@@ -67,6 +68,7 @@ comfyApp.registerExtension({
         document.body.appendChild(mountPoint);
         createApp(App)
             .use(PrimeVue, {
+                // 不指定主题就爆炸，这是什么鬼事情？
                 theme: {
                     preset: Aura
                 }

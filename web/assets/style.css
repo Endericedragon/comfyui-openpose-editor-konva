@@ -1328,33 +1328,36 @@
     content: "\e926";
 }
 
-.skeleton-container[data-v-b6c73c13] {
+.skeleton-container[data-v-595d6bd5] {
   max-width: 80vw;
   max-height: 70vh;
   overflow: hidden;
   border: dotted grey;
 }
-.sk-joint[data-v-b6c73c13]:hover {
+.sk-joint[data-v-595d6bd5]:hover {
   cursor: pointer;
 }
-.oe-row[data-v-b6c73c13] {
+.oe-row[data-v-595d6bd5] {
   width: 100%;
   position: absolute;
   display: flex;
   justify-content: flex-start;
+  flex-direction: row;
   align-items: center;
   padding: 0.5em;
 }
-.oe-row[data-v-b6c73c13]>* {
-  margin: 0 1em;
+.oe-row[data-v-595d6bd5]>* {
+  margin: 2em;
   transition: 0.2s;
   opacity: 0.4;
   z-index: 1 !important;
 }
-.oe-row[data-v-b6c73c13]>*:hover {
+.oe-row[data-v-595d6bd5]>*:hover {
   opacity: 1;
 }
-#opacity-slider[data-v-b6c73c13] {
-  width: 100%;
-  margin: 1.2em;
+.opacity-slider[data-v-595d6bd5] {
+  min-width: 8em;
+}
+.opacity-slider[data-v-595d6bd5]>* {
+min-width: 100%;
 }
