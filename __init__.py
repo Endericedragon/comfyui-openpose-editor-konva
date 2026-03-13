@@ -38,10 +38,10 @@ class EditorController:
         pass
 
 
-@PromptServer.instance.routes.post("/oe-konva/initialize")
-async def initialize_editor(request: web.Request) -> web.Response:
+# @PromptServer.instance.routes.post("/oe-konva/initialize")
+# async def initialize_editor(request: web.Request) -> web.Response:
 
-    return web.json_response({"status": "ok"}, status=200)
+#     return web.json_response({"status": "ok"}, status=200)
 
 
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "WEB_DIRECTORY"]

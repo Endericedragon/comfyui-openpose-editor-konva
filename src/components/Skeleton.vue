@@ -253,7 +253,7 @@ onUnmounted(() => {
     <input type="file" ref="jsonInputRef" accept="application/json" @change="handleLoadSkeleton" />
   </div>
 
-  <div class="row" :style="{ 'max-width': actualWidth + 'px' }">
+  <div class="oe-row" :style="{ 'max-width': actualWidth + 'px' }">
     <!-- <div class="row"> -->
     <Slider id="opacity-slider" v-model="bgOpacity" :max="1" :step="0.02" v-tooltip.bottom="'Background Opacity'">
     </Slider>
@@ -315,7 +315,7 @@ onUnmounted(() => {
   cursor: pointer;
 }
 
-.row {
+.oe-row {
   width: 100%;
   position: absolute;
   display: flex;
@@ -324,14 +324,14 @@ onUnmounted(() => {
   padding: 0.5em;
 }
 
-.row>* {
+.oe-row>* {
   margin: 0 0.2em;
   transition: 0.2s;
   opacity: 0.4;
   z-index: 1 !important;
 }
 
-.row>*:hover {
+.oe-row>*:hover {
   opacity: 1;
 }
 

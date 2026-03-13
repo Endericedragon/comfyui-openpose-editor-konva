@@ -2,6 +2,8 @@
 import { createApp } from "vue"
 // primevue
 import PrimeVue from "primevue/config";
+import Tooltip from 'primevue/tooltip';
+
 // shared data types
 import { comfyApp, utils, postTextData, EVENTS } from "./constants.js";
 import App from "./App.vue"
@@ -29,14 +31,22 @@ comfyApp.registerExtension({
         // }
 
         const nodeTypeStr = node.type;
-        let newMenuOptions = [];
+        const widgets = node.widgets;
+        const widthWidget = widgets.find(w => w.name.toLowerCase() === "width");
+        const heightWidget = widgets.find(w => w.name.toLowerCase() === "height");
+
         if (nodeTypeStr === "OpenPoseEditorKonva Controller") {
             return [
                 {
                     content: "Show OpenPose Editor (Konva)",
                     callback: () => {
                         // 触发自定义事件，展示编辑器窗口
-                        window.dispatchEvent(new CustomEvent(EVENTS.showEditor, {}));
+                        window.dispatchEvent(new CustomEvent(EVENTS.showEditor, {
+                            detail: {
+                                width: widthWidget?.value,
+                                height: heightWidget?.value,
+                            }
+                        }));
                     }
                 }
             ];
@@ -57,6 +67,7 @@ comfyApp.registerExtension({
         document.body.appendChild(mountPoint);
         createApp(App)
             .use(PrimeVue)
+            .directive('tooltip', Tooltip)
             .mount(mountPoint);
     }
 });
