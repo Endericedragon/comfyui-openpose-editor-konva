@@ -24,7 +24,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <Dialog v-model:visible="showEditor" style="max-width: 85vw; max-height: 85vh;">
+  <Dialog header="Openpose Editor Konva" v-model:visible="showEditor" style="max-width: 85vw; max-height: 85vh;">
     <Skeleton :width="editorWidth" :height="editorHeight"></Skeleton>
   </Dialog>
 </template>

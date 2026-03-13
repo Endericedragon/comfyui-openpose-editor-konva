@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import 'primeicons/primeicons.css'
-import Button from "primevue/button";
-import Slider from "primevue/slider";
+import 'primeicons/primeicons.css';
+import { Button, Slider } from "primevue";
 import { ref, onMounted, onUnmounted, nextTick } from "vue";
 import Konva from "konva";
 import { Stage as VStage, Layer as VLayer, Circle as VCircle, Line as VLine, Image as VImage, Rect as VRect } from 'vue-konva';
@@ -230,19 +229,19 @@ function handleLoadSkeleton(e: Event) {
 // 配置全局事件监听器，保证中键释放时关闭画布拖拽。
 // 同时，处理窗口大小变化时的事件，更新实际宽度。
 const skeletonContainer = ref<Element>();
-let actualWidth = ref(0);
-function handleResize() {
-  actualWidth.value = skeletonContainer.value?.clientWidth || 0;
-}
+// let actualWidth = ref(0);
+// function handleResize() {
+//   actualWidth.value = skeletonContainer.value?.clientWidth || 0;
+// }
 onMounted(() => {
   skeletonContainer.value = document.getElementsByClassName("skeleton-container")[0];
-  handleResize();
-  window.addEventListener("resize", handleResize);
+  // handleResize();
+  // window.addEventListener("resize", handleResize);
   window.addEventListener("mouseup", handleMouseRelease);
 });
 onUnmounted(() => {
   window.removeEventListener("mouseup", handleMouseRelease);
-  window.removeEventListener("resize", handleResize);
+  // window.removeEventListener("resize", handleResize);
 });
 </script>
 
@@ -254,8 +253,7 @@ onUnmounted(() => {
     <input type="file" ref="jsonInputRef" accept="application/json" @change="handleLoadSkeleton" />
   </div>
 
-  <div class="oe-row" :style="{ 'max-width': actualWidth + 'px' }">
-    <Slider id="opacity-slider" v-model="bgOpacity" :max="1" :step="0.02" v-tooltip.bottom="'Background Opacity'" />
+  <div class="oe-row" >
     <Button @click="handleCameraReset" v-tooltip.bottom="'Camera Reset'">
       <i class="pi pi-undo"></i>
     </Button>
@@ -271,6 +269,7 @@ onUnmounted(() => {
     <Button @click="triggerLoadImg" v-tooltip.bottom="'Load Background'">
       <i class="pi pi-image"></i>
     </Button>
+    <Slider id="opacity-slider" v-model="bgOpacity" :max="1" :step="0.02" v-tooltip.bottom="'Background Opacity'" />
   </div>
   <div class="skeleton-container">
     <v-stage :config="stageConfig" ref="stageRef" @mousedown="handleStagePress" @wheel="handleWheel">
@@ -318,13 +317,13 @@ onUnmounted(() => {
   width: 100%;
   position: absolute;
   display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 0.5em;
+  /* justify-content: flex-start; */
+  justify-items: center;
+  /* align-items: center; */
 }
 
 .oe-row>* {
-  margin: 0 0.2em;
+  margin: 1em;
   transition: 0.2s;
   opacity: 0.4;
   z-index: 1 !important;
@@ -334,9 +333,8 @@ onUnmounted(() => {
   opacity: 1;
 }
 
-#opacity-slider {
+/* #opacity-slider {
   width: 100%;
   margin: 1.2em;
-  border: solid red;
-}
+} */
 </style>

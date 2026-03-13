@@ -43,7 +43,7 @@ export default defineConfig({
         },
         outDir: outputDirectory,
         sourcemap: false,
-        assetsInlineLimit: 0,
+        assetsInlineLimit: 30000,
         cssCodeSplit: false,
         chunkSizeWarningLimit: 1024,
     },

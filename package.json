@@ -1,6 +1,6 @@
 {
   "peerDependencies": {
-    "primevue": "^4.3.9",
+    "primevue": "^4.5.4",
     "vue": "^3.5.13",
     "vue-i18n": "^9.14.3"
   },
