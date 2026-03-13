@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import 'primeicons/primeicons.css';
-import { Button, Slider } from "primevue";
+import { Button, Slider, InputGroup, InputGroupAddon } from "primevue";
 import { ref, onMounted, onUnmounted, nextTick } from "vue";
 import Konva from "konva";
 import { Stage as VStage, Layer as VLayer, Circle as VCircle, Line as VLine, Image as VImage, Rect as VRect } from 'vue-konva';
@@ -253,22 +253,28 @@ onUnmounted(() => {
     <input type="file" ref="jsonInputRef" accept="application/json" @change="handleLoadSkeleton" />
   </div>
 
-  <div class="oe-row" >
-    <Button @click="handleCameraReset" v-tooltip.bottom="'Camera Reset'">
-      <i class="pi pi-undo"></i>
-    </Button>
-    <Button @click="handleSaveImage" v-tooltip.bottom="'Copy Image Base64'">
-      <i class="pi pi-clipboard"></i>
-    </Button>
-    <Button @click="triggerLoadSkeleton" v-tooltip.bottom="'Load Skeleton JSON'">
-      <i class="pi pi-upload"></i>
-    </Button>
-    <Button @click="handleSaveSkeleton" v-tooltip.bottom="'Copy Skeleton JSON'">
-      <i class="pi pi-save"></i>
-    </Button>
-    <Button @click="triggerLoadImg" v-tooltip.bottom="'Load Background'">
-      <i class="pi pi-image"></i>
-    </Button>
+  <InputGroup>
+    <InputGroupAddon><Button @click="handleCameraReset" v-tooltip.bottom="'Camera Reset'">
+        <i class="pi pi-undo"></i>
+      </Button></InputGroupAddon>
+    <InputGroupAddon><Button @click="handleSaveImage" v-tooltip.bottom="'Copy Image Base64'">
+        <i class="pi pi-clipboard"></i>
+      </Button></InputGroupAddon>
+    <InputGroupAddon><Button @click="triggerLoadSkeleton" v-tooltip.bottom="'Load Skeleton JSON'">
+        <i class="pi pi-upload"></i>
+      </Button></InputGroupAddon>
+    <InputGroupAddon><Button @click="handleSaveSkeleton" v-tooltip.bottom="'Copy Skeleton JSON'">
+        <i class="pi pi-save"></i>
+      </Button>
+    </InputGroupAddon>
+    <InputGroupAddon>
+      <Button @click="triggerLoadImg" v-tooltip.bottom="'Load Background'">
+        <i class="pi pi-image"></i>
+      </Button>
+    </InputGroupAddon>
+  </InputGroup>
+
+  <div>
     <Slider id="opacity-slider" v-model="bgOpacity" :max="1" :step="0.02" v-tooltip.bottom="'Background Opacity'" />
   </div>
   <div class="skeleton-container">
@@ -317,13 +323,13 @@ onUnmounted(() => {
   width: 100%;
   position: absolute;
   display: flex;
-  /* justify-content: flex-start; */
-  justify-items: center;
-  /* align-items: center; */
+  justify-content: flex-start;
+  align-items: center;
+  padding: 0.5em;
 }
 
 .oe-row>* {
-  margin: 1em;
+  margin: 0 1em;
   transition: 0.2s;
   opacity: 0.4;
   z-index: 1 !important;
@@ -333,8 +339,8 @@ onUnmounted(() => {
   opacity: 1;
 }
 
-/* #opacity-slider {
+#opacity-slider {
   width: 100%;
   margin: 1.2em;
-} */
+}
 </style>

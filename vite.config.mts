@@ -1,53 +1,33 @@
-import { fileURLToPath, URL } from "node:url"
-import { defineConfig } from "vite"
-import vue from "@vitejs/plugin-vue"
-import vueDevTools from "vite-plugin-vue-devtools"
-// import pkg from "./package.json" with {type: "json"};
-
-// const VDITOR_VERSION = pkg.dependencies["vditor"].match(/\d+\.\d+\.\d/g)[0];
-
-const outputDirectory = "web";
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import { resolve } from 'path'
 
 export default defineConfig({
-    plugins: [
-        vue(),
-        vueDevTools()
-    ],
+    plugins: [vue()],
     resolve: {
         alias: {
-            "@": fileURLToPath(new URL("./src", import.meta.url))
-        },
+            '@': resolve(__dirname, './src')
+        }
     },
     build: {
-        // lib: {
-        //     entry: "./src/main.ts",
-        //     formats: ["es"],
-        //     fileName: "main"
-        // },
+        lib: {
+            entry: resolve(__dirname, './src/main.ts'),
+            formats: ['es'],
+            fileName: 'main',
+            cssFileName: "style.css"
+        },
         rollupOptions: {
-            external: [
-                // "../../../scripts/app.js",
-                // "../../../scripts/api.js",
-                // "../../../scripts/domWidget.js",
-                // "../../../scripts/utils.js",
-                // "vue",
-                // "vue-i18n",
-                // /^primevue\/?.*/,
-                // /^@primevue\/themes\/?.*/
-            ],
             output: {
-                dir: outputDirectory,
-                assetFileNames: "assets/[name].[ext]",
-                entryFileNames: "main.js",
+                dir: 'web',
+                entryFileNames: 'main.js',
+                chunkFileNames: 'assets/[name].js',
+                assetFileNames: 'assets/[name][extname]'
             }
         },
-        outDir: outputDirectory,
-        sourcemap: false,
-        assetsInlineLimit: 30000,
-        cssCodeSplit: false,
-        chunkSizeWarningLimit: 1024,
+        sourcemap: true,
+        minify: false
     },
-    // define: {
-    //     "__VDITOR_VERSION__": JSON.stringify(VDITOR_VERSION)
-    // }
+    define: {
+        'process.env.NODE_ENV': JSON.stringify('production')
+    }
 })

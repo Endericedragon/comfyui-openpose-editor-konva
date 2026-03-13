@@ -1,7 +1,6 @@
 import os
 import pathlib
 from functools import lru_cache
-from sre_constants import CATEGORY
 from typing import TypedDict
 import mimetypes
 
@@ -49,4 +48,4 @@ NODE_CLASS_MAPPINGS = {
     "OpenPoseEditorKonva Controller": EditorController,
 }
 NODE_DISPLAY_NAME_MAPPINGS = dict()
-WEB_DIRECTORY = "web"
+WEB_DIRECTORY = "./web"

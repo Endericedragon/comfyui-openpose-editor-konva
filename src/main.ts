@@ -3,15 +3,15 @@ import { createApp } from "vue"
 // primevue
 import PrimeVue from "primevue/config";
 import Tooltip from 'primevue/tooltip';
+import Aura from '@primeuix/themes/aura';
 
 // shared data types
 import { comfyApp, utils, postTextData, EVENTS } from "./constants.js";
 import App from "./App.vue"
 
 // extensions/comfyui-openpose-editor-konva是固定的，后续内容和/web目录有关
-const CSS_PATH = "extensions/comfyui-openpose-editor-konva/assets/style.css";
-utils.addStylesheet(CSS_PATH);
-
+// const CSS_PATH = "extensions/comfyui-openpose-editor-konva/assets/style.css";
+// utils.addStylesheet(CSS_PATH);
 
 comfyApp.registerExtension({
     name: "endericedragon.comfyui-openpose-editor-konva",
@@ -32,8 +32,8 @@ comfyApp.registerExtension({
 
         const nodeTypeStr = node.type;
         const widgets = node.widgets;
-        const widthWidget = widgets.find(w => w.name.toLowerCase() === "width");
-        const heightWidget = widgets.find(w => w.name.toLowerCase() === "height");
+        const widthWidget = widgets?.find(w => w.name.toLowerCase() === "width");
+        const heightWidget = widgets?.find(w => w.name.toLowerCase() === "height");
 
         if (nodeTypeStr === "OpenPoseEditorKonva Controller") {
             return [
@@ -66,7 +66,11 @@ comfyApp.registerExtension({
         mountPoint.id = "oe-konva-ui";
         document.body.appendChild(mountPoint);
         createApp(App)
-            .use(PrimeVue)
+            .use(PrimeVue, {
+                theme: {
+                    preset: Aura
+                }
+            })
             .directive('tooltip', Tooltip)
             .mount(mountPoint);
     }
