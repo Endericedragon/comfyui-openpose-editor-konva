@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import 'primeicons/primeicons.css';
 import { Button, Slider, InputGroup, InputGroupAddon } from "primevue";
-import { ref, onMounted, onUnmounted, nextTick } from "vue";
+import { ref, onMounted, onUnmounted, onBeforeUnmount, nextTick } from "vue";
 import Konva from "konva";
 import { Stage as VStage, Layer as VLayer, Circle as VCircle, Line as VLine, Image as VImage, Rect as VRect } from 'vue-konva';
 import { setMousePattern, resetMousePattern } from "@/myUtils";
 import { CameraStatus } from "@/statusCache";
 import { DEFAULT_JOINTS, DEFAULT_BONES, scaleJoints, SerializedJoints } from "@/defaultCoco18";
+import { comfyApp, postTextData } from "@/constants";
 
 const SCALE_BY = 1.1;
 // 从外界传入宽度和高度。
@@ -78,7 +79,7 @@ function handleJointMove(e: Konva.KonvaEventObject<DragEvent>) {
 /**
  * 导出骨骼图的Base64编码
  */
-async function handleSaveImage() {
+async function getSkeletonBase64() {
   const stage = stageRef.value?.getStage();
   if (!stage) { return; }
   // 隐藏背景
@@ -99,7 +100,12 @@ async function handleSaveImage() {
   // 等待渲染完成
   await nextTick();
   stage.batchDraw();
-  navigator.clipboard.writeText(imgBase64);
+  return imgBase64;
+}
+async function handleSaveImage() {
+  const imgBase64 = await getSkeletonBase64();
+  if (!imgBase64) { return; }
+  postTextData(comfyApp, "/oe-konva/skeletonBase64", imgBase64);
 }
 /**
  * 重置相机位置和缩放比例
@@ -242,6 +248,12 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener("mouseup", handleMouseRelease);
   // window.removeEventListener("resize", handleResize);
+
+});
+onBeforeUnmount(() => {
+  handleSaveImage().then(() => {
+    console.log("Image saved!");
+  });
 });
 </script>
 
@@ -263,17 +275,12 @@ onUnmounted(() => {
         </Button>
       </InputGroupAddon>
       <InputGroupAddon>
-        <Button @click="handleSaveImage" v-tooltip.bottom="'Copy Image Base64'">
-          <i class="pi pi-clipboard"></i>
-        </Button>
-      </InputGroupAddon>
-      <InputGroupAddon>
         <Button @click="triggerLoadSkeleton" v-tooltip.bottom="'Load Skeleton JSON'">
           <i class="pi pi-upload"></i>
         </Button>
       </InputGroupAddon>
       <InputGroupAddon>
-        <Button @click="handleSaveSkeleton" v-tooltip.bottom="'Copy Skeleton JSON'">
+        <Button @click="handleSaveImage" v-tooltip.bottom="'Save Image Base64'">
           <i class="pi pi-save"></i>
         </Button>
       </InputGroupAddon>
@@ -354,7 +361,8 @@ onUnmounted(() => {
 .opacity-slider {
   min-width: 8em;
 }
+
 .opacity-slider>* {
-min-width: 100%;
+  min-width: 100%;
 }
 </style>

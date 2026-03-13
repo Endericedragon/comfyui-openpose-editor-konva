@@ -7,7 +7,7 @@ import Aura from '@primeuix/themes/aura';
 // import Nora from '@primeuix/themes/nora';
 
 // shared data types
-import { comfyApp, utils, postTextData, EVENTS } from "./constants.js";
+import { comfyApp, utils, EVENTS } from "./constants.js";
 import App from "./App.vue"
 
 // extensions/comfyui-openpose-editor-konva是固定的，后续内容和/web目录有关

@@ -9653,6 +9653,25 @@ var Nr, Qr = (Nr = ((r2, e2) => {
 const cuWin = window;
 const comfyApp = cuWin.comfyAPI.app.app;
 const utils = cuWin.comfyAPI.utils;
+async function postTextData(app, route, text) {
+  const resp = await app.api.fetchApi(route, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: text
+  });
+  switch (resp.status) {
+    case 200:
+      return resp.text();
+    default:
+      comfyApp.extensionManager.toast.add({
+        severity: "error",
+        summary: "MDNotes Error",
+        detail: `Status code = ${resp.status}`,
+        life: 3e3
+      });
+      return Promise.reject(resp.status);
+  }
+}
 const EVENTS$1 = {
   showEditor: "showOpenPoseEditorKonva"
 };
@@ -25084,7 +25103,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
       joints.value[targetId].x = targetX;
       joints.value[targetId].y = targetY;
     }
-    async function handleSaveImage() {
+    async function getSkeletonBase64() {
       var _a2;
       const stage = (_a2 = stageRef.value) == null ? void 0 : _a2.getStage();
       if (!stage) {
@@ -25104,7 +25123,14 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
       showBackground.value = true;
       await nextTick();
       stage.batchDraw();
-      navigator.clipboard.writeText(imgBase64);
+      return imgBase64;
+    }
+    async function handleSaveImage() {
+      const imgBase64 = await getSkeletonBase64();
+      if (!imgBase64) {
+        return;
+      }
+      postTextData(comfyApp, "/oe-konva/skeletonBase64", imgBase64);
     }
     function handleCameraReset() {
       var _a2;
@@ -25161,11 +25187,6 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
         y: stage.y() - oldY * (newScale / originalScale - 1)
       });
       currentStageScale.value = newScale;
-    }
-    function handleSaveSkeleton() {
-      const serializedJoints = SerializedJoints.fromJoints(joints.value, stageWidth, stageHeight);
-      const jsonStr = serializedJoints.serialize();
-      navigator.clipboard.writeText(jsonStr);
     }
     const fileInputRef = ref();
     function triggerLoadImg() {
@@ -25224,6 +25245,11 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     onUnmounted(() => {
       window.removeEventListener("mouseup", handleMouseRelease);
     });
+    onBeforeUnmount(() => {
+      handleSaveImage().then(() => {
+        console.log("Image saved!");
+      });
+    });
     return (_ctx, _cache) => {
       const _directive_tooltip = resolveDirective("tooltip");
       return openBlock(), createElementBlock(Fragment, null, [
@@ -25266,26 +25292,8 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
               }),
               createVNode(unref(script$2), null, {
                 default: withCtx(() => [
-                  withDirectives((openBlock(), createBlock(unref(script$8), { onClick: handleSaveImage }, {
-                    default: withCtx(() => [..._cache[2] || (_cache[2] = [
-                      createBaseVNode("i", { class: "pi pi-clipboard" }, null, -1)
-                    ])]),
-                    _: 1
-                  })), [
-                    [
-                      _directive_tooltip,
-                      "Copy Image Base64",
-                      void 0,
-                      { bottom: true }
-                    ]
-                  ])
-                ]),
-                _: 1
-              }),
-              createVNode(unref(script$2), null, {
-                default: withCtx(() => [
                   withDirectives((openBlock(), createBlock(unref(script$8), { onClick: triggerLoadSkeleton }, {
-                    default: withCtx(() => [..._cache[3] || (_cache[3] = [
+                    default: withCtx(() => [..._cache[2] || (_cache[2] = [
                       createBaseVNode("i", { class: "pi pi-upload" }, null, -1)
                     ])]),
                     _: 1
@@ -25302,15 +25310,15 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
               }),
               createVNode(unref(script$2), null, {
                 default: withCtx(() => [
-                  withDirectives((openBlock(), createBlock(unref(script$8), { onClick: handleSaveSkeleton }, {
-                    default: withCtx(() => [..._cache[4] || (_cache[4] = [
+                  withDirectives((openBlock(), createBlock(unref(script$8), { onClick: handleSaveImage }, {
+                    default: withCtx(() => [..._cache[3] || (_cache[3] = [
                       createBaseVNode("i", { class: "pi pi-save" }, null, -1)
                     ])]),
                     _: 1
                   })), [
                     [
                       _directive_tooltip,
-                      "Copy Skeleton JSON",
+                      "Save Image Base64",
                       void 0,
                       { bottom: true }
                     ]
@@ -25321,7 +25329,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
               createVNode(unref(script$2), null, {
                 default: withCtx(() => [
                   withDirectives((openBlock(), createBlock(unref(script$8), { onClick: triggerLoadImg }, {
-                    default: withCtx(() => [..._cache[5] || (_cache[5] = [
+                    default: withCtx(() => [..._cache[4] || (_cache[4] = [
                       createBaseVNode("i", { class: "pi pi-image" }, null, -1)
                     ])]),
                     _: 1
@@ -25430,7 +25438,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-595d6bd5"]]);
+const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-aea6daba"]]);
 const _sfc_main = /* @__PURE__ */ defineComponent({
   __name: "App",
   setup(__props) {

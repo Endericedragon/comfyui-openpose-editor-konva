@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, watch } from "vue";
 import { Dialog } from "primevue"
 import Skeleton from "@/components/Skeleton.vue"
 import { EVENTS } from "./constants";
