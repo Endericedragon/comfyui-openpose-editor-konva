@@ -24929,31 +24929,6 @@ function setMousePattern() {
 function resetMousePattern() {
   document.body.style.cursor = "default";
 }
-class CameraStatus {
-  constructor(x2, y2, scale) {
-    __publicField(this, "x");
-    __publicField(this, "y");
-    __publicField(this, "scale");
-    this.x = x2;
-    this.y = y2;
-    this.scale = scale;
-  }
-  static from(stage) {
-    return new CameraStatus(
-      stage.x(),
-      stage.y(),
-      stage.scaleX()
-    );
-  }
-  set(stage) {
-    stage.setAttrs({
-      x: this.x,
-      y: this.y,
-      scaleX: this.scale,
-      scaleY: this.scale
-    });
-  }
-}
 class StageStatus {
   // 当前关节点的位置信息
   constructor(opacity, bgImgBase64, currentJoints) {
@@ -25104,45 +25079,17 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
       joints2.value[targetId].x = targetX;
       joints2.value[targetId].y = targetY;
     }
-    async function getSkeletonBase64() {
-      var _a3;
-      const stage = (_a3 = stageRef.value) == null ? void 0 : _a3.getStage();
-      if (!stage) {
-        return;
-      }
-      showBackground.value = false;
-      const cs = CameraStatus.from(stage);
-      if (!cs) {
-        return;
-      }
-      handleCameraReset();
-      await nextTick();
-      stage.batchDraw();
-      const imgBase64 = stage.toDataURL();
-      cs.set(stage);
-      currentStageScale.value = cs.scale;
-      showBackground.value = true;
-      await nextTick();
-      stage.batchDraw();
-      return imgBase64;
-    }
-    function closeDialog() {
+    function closeDialog(doSave) {
       var _a3;
       const ss = new StageStatus(bgOpacity.value, bgConfig.value.image.src, joints2.value);
       if (!ss) {
         return;
       }
-      handleSaveSkeleton();
-      emits("afterClose", ss);
-      (_a3 = props.closeCallback) == null ? void 0 : _a3.call(props);
-    }
-    async function handleSaveImageAndClose() {
-      const imgBase64 = await getSkeletonBase64();
-      if (!imgBase64) {
-        return;
+      if (doSave) {
+        handleSaveSkeleton();
+        emits("afterClose", ss);
       }
-      postTextData(comfyApp, "/oe-konva/skeletonBase64", imgBase64);
-      closeDialog();
+      (_a3 = props.closeCallback) == null ? void 0 : _a3.call(props);
     }
     function handleCameraReset() {
       var _a3;
@@ -25280,6 +25227,10 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     }
+    function handleResetSkeleton() {
+      joints2.value = DEFAULT_JOINTS();
+      scaleJoints(joints2.value, stageWidth, stageHeight);
+    }
     const skeletonContainer = ref();
     onMounted(() => {
       skeletonContainer.value = document.getElementsByClassName("skeleton-container")[0];
@@ -25313,7 +25264,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
               createVNode(unref(script$2), null, {
                 default: withCtx(() => [
                   withDirectives((openBlock(), createBlock(unref(script$8), { onClick: triggerLoadSkeleton }, {
-                    default: withCtx(() => [..._cache[1] || (_cache[1] = [
+                    default: withCtx(() => [..._cache[3] || (_cache[3] = [
                       createBaseVNode("i", { class: "pi pi-upload" }, null, -1)
                     ])]),
                     _: 1
@@ -25331,7 +25282,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
               createVNode(unref(script$2), null, {
                 default: withCtx(() => [
                   withDirectives((openBlock(), createBlock(unref(script$8), { onClick: triggerSaveSkeleton }, {
-                    default: withCtx(() => [..._cache[2] || (_cache[2] = [
+                    default: withCtx(() => [..._cache[4] || (_cache[4] = [
                       createBaseVNode("i", { class: "pi pi-download" }, null, -1)
                     ])]),
                     _: 1
@@ -25348,9 +25299,27 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
               }),
               createVNode(unref(script$2), null, {
                 default: withCtx(() => [
-                  withDirectives((openBlock(), createBlock(unref(script$8), { onClick: handleCameraReset }, {
-                    default: withCtx(() => [..._cache[3] || (_cache[3] = [
+                  withDirectives((openBlock(), createBlock(unref(script$8), { onClick: handleResetSkeleton }, {
+                    default: withCtx(() => [..._cache[5] || (_cache[5] = [
                       createBaseVNode("i", { class: "pi pi-undo" }, null, -1)
+                    ])]),
+                    _: 1
+                  })), [
+                    [
+                      _directive_tooltip,
+                      "Reset Skeleton",
+                      void 0,
+                      { bottom: true }
+                    ]
+                  ])
+                ]),
+                _: 1
+              }),
+              createVNode(unref(script$2), null, {
+                default: withCtx(() => [
+                  withDirectives((openBlock(), createBlock(unref(script$8), { onClick: handleCameraReset }, {
+                    default: withCtx(() => [..._cache[6] || (_cache[6] = [
+                      createBaseVNode("i", { class: "pi pi-camera" }, null, -1)
                     ])]),
                     _: 1
                   })), [
@@ -25385,7 +25354,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
               createVNode(unref(script$2), null, {
                 default: withCtx(() => [
                   withDirectives((openBlock(), createBlock(unref(script$8), { onClick: triggerLoadImg }, {
-                    default: withCtx(() => [..._cache[4] || (_cache[4] = [
+                    default: withCtx(() => [..._cache[7] || (_cache[7] = [
                       createBaseVNode("i", { class: "pi pi-image" }, null, -1)
                     ])]),
                     _: 1
@@ -25403,7 +25372,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
               createVNode(unref(script$2), null, {
                 default: withCtx(() => [
                   withDirectives((openBlock(), createBlock(unref(script$8), { onClick: handleClearBg }, {
-                    default: withCtx(() => [..._cache[5] || (_cache[5] = [
+                    default: withCtx(() => [..._cache[8] || (_cache[8] = [
                       createBaseVNode("i", { class: "pi pi-eraser" }, null, -1)
                     ])]),
                     _: 1
@@ -25421,10 +25390,10 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
               createVNode(unref(script$2), null, {
                 default: withCtx(() => [
                   withDirectives((openBlock(), createBlock(unref(script$8), {
-                    onClick: handleSaveImageAndClose,
+                    onClick: _cache[1] || (_cache[1] = ($event) => closeDialog(true)),
                     severity: "success"
                   }, {
-                    default: withCtx(() => [..._cache[6] || (_cache[6] = [
+                    default: withCtx(() => [..._cache[9] || (_cache[9] = [
                       createBaseVNode("i", { class: "pi pi-check" }, null, -1)
                     ])]),
                     _: 1
@@ -25442,10 +25411,10 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
               createVNode(unref(script$2), null, {
                 default: withCtx(() => [
                   withDirectives((openBlock(), createBlock(unref(script$8), {
-                    onClick: closeDialog,
+                    onClick: _cache[2] || (_cache[2] = ($event) => closeDialog(false)),
                     severity: "danger"
                   }, {
-                    default: withCtx(() => [..._cache[7] || (_cache[7] = [
+                    default: withCtx(() => [..._cache[10] || (_cache[10] = [
                       createBaseVNode("i", { class: "pi pi-times" }, null, -1)
                     ])]),
                     _: 1
@@ -25536,7 +25505,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-6dedad40"]]);
+const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-4a876846"]]);
 const _sfc_main = /* @__PURE__ */ defineComponent({
   __name: "App",
   setup(__props) {

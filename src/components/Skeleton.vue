@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import 'primeicons/primeicons.css';
 import { Button, Slider, InputGroup, InputGroupAddon } from "primevue";
-import { ref, onMounted, onUnmounted, nextTick } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import Konva from "konva";
 import { Stage as VStage, Layer as VLayer, Circle as VCircle, Line as VLine, Image as VImage, Rect as VRect } from 'vue-konva';
 import { setMousePattern, resetMousePattern, Joint } from "@/myUtils";
-import { CameraStatus, StageStatus } from "@/statusCache";
+import { StageStatus } from "@/statusCache";
 import { DEFAULT_JOINTS, DEFAULT_BONES, scaleJoints, SerializedJoints } from "@/defaultCoco18";
 import { comfyApp, EMPTY_BASE64, postTextData } from "@/constants";
 
@@ -87,49 +87,19 @@ function handleJointMove(e: Konva.KonvaEventObject<DragEvent>) {
   joints.value[targetId].y = targetY;
 }
 /**
- * 导出骨骼图的Base64编码
+ * 关闭窗口，可选择是否保存骨骼Json
  */
-async function getSkeletonBase64() {
-  const stage = stageRef.value?.getStage();
-  if (!stage) { return; }
-  // 隐藏背景
-  showBackground.value = false;
-  // 重置相机
-  const cs = CameraStatus.from(stage);
-  if (!cs) { return; }
-  handleCameraReset();
-  // 等待渲染完成
-  await nextTick();
-  stage.batchDraw();
-  const imgBase64 = stage.toDataURL();
-  // 恢复相机
-  cs.set(stage);
-  currentStageScale.value = cs.scale;
-  // 恢复背景
-  showBackground.value = true;
-  // 等待渲染完成
-  await nextTick();
-  stage.batchDraw();
-  return imgBase64;
-}
-/**
- * 保存骨骼图并关闭窗口
- */
-function closeDialog() {
+function closeDialog(doSave: boolean) {
   // 保存舞台状态
   const ss = new StageStatus(bgOpacity.value, bgConfig.value.image.src, joints.value);
   if (!ss) { return; }
   // 保存骨骼图JSON
-  handleSaveSkeleton();
-  // 通知父组件更新状态
-  emits("afterClose", ss);
+  if (doSave) {
+    handleSaveSkeleton();
+    // 通知父组件更新状态
+    emits("afterClose", ss);
+  }
   props.closeCallback?.();
-}
-async function handleSaveImageAndClose() {
-  const imgBase64 = await getSkeletonBase64();
-  if (!imgBase64) { return; }
-  postTextData(comfyApp, "/oe-konva/skeletonBase64", imgBase64);
-  closeDialog();
 }
 /**
  * 重置相机位置和缩放比例
@@ -196,7 +166,7 @@ function handleWheel(e: Konva.KonvaEventObject<WheelEvent>) {
   currentStageScale.value = newScale;
 }
 /**
- * 导出骨骼图的JSON编码
+ * 导出骨骼图的JSON编码，然后传回后端
  */
 function handleSaveSkeleton() {
   const serializedJoints = SerializedJoints.fromJoints(joints.value, stageWidth, stageHeight);
@@ -296,6 +266,13 @@ function triggerSaveSkeleton() {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+/**
+ * 将骨骼姿势恢复为默认状态，即coco18里存储的状态
+ */
+function handleResetSkeleton() {
+  joints.value = DEFAULT_JOINTS();
+  scaleJoints(joints.value, stageWidth, stageHeight);
+}
 // 配置全局事件监听器，保证中键释放时关闭画布拖拽。
 // 同时，处理窗口大小变化时的事件，更新实际宽度。
 const skeletonContainer = ref<Element>();
@@ -329,7 +306,7 @@ onUnmounted(() => {
   <div class="oe-row">
     <InputGroup>
       <InputGroupAddon>
-        <!-- 加载/下载骨骼JSON文件 -->
+        <!-- 上传/下载骨骼JSON文件 -->
         <Button @click="triggerLoadSkeleton" v-tooltip.bottom="'Load Skeleton JSON'">
           <i class="pi pi-upload"></i>
         </Button>
@@ -339,10 +316,16 @@ onUnmounted(() => {
           <i class="pi pi-download"></i>
         </Button>
       </InputGroupAddon>
+      <!-- 骨骼重置 -->
+      <InputGroupAddon>
+        <Button @click="handleResetSkeleton" v-tooltip.bottom="'Reset Skeleton'">
+          <i class="pi pi-undo"></i>
+        </Button>
+      </InputGroupAddon>
       <!-- 视角重置按钮 -->
       <InputGroupAddon>
         <Button @click="handleCameraReset" v-tooltip.bottom="'Camera Reset'">
-          <i class="pi pi-undo"></i>
+          <i class="pi pi-camera"></i>
         </Button>
       </InputGroupAddon>
       <!-- 背景透明度滑块 -->
@@ -362,12 +345,12 @@ onUnmounted(() => {
       </InputGroupAddon>
       <!-- 保存/关闭按钮 -->
       <InputGroupAddon>
-        <Button @click="handleSaveImageAndClose" v-tooltip.bottom="'Save and Close'" severity="success">
+        <Button @click="closeDialog(true)" v-tooltip.bottom="'Save and Close'" severity="success">
           <i class="pi pi-check"></i>
         </Button>
       </InputGroupAddon>
       <InputGroupAddon>
-        <Button @click="closeDialog" v-tooltip.bottom="'Close without Saving'" severity="danger">
+        <Button @click="closeDialog(false)" v-tooltip.bottom="'Close without Saving'" severity="danger">
           <i class="pi pi-times"></i>
         </Button>
       </InputGroupAddon>

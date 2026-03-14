@@ -1,12 +1,19 @@
 from aiohttp import web
 from server import PromptServer
+from .utils import (
+    SkeletonData,
+    coco2skeleton,
+    draw_pose,
+    image2tensor,
+    load_default_coco18,
+    pose_kps2json,
+    scale_default_skeleton,
+)
 
-import pathlib
+import json
 import torch
 
-from .utils import base64_to_tensor, pose_kps2json
 
-base64_string = ""
 skeleton_json_str = ""
 
 
@@ -35,17 +42,25 @@ class EditorController:
     FUNCTION = "run"
 
     def run(self, width: int, height: int):
-        global base64_string, skeleton_json_str
-        if base64_string and skeleton_json_str:
-            return base64_to_tensor(base64_string), skeleton_json_str
+        global skeleton_json_str
+        if skeleton_json_str:
+            skeleton_data: SkeletonData = json.loads(skeleton_json_str)
+            return (
+                image2tensor(draw_pose(load_default_coco18(), skeleton_data)),
+                skeleton_json_str,
+            )
         else:
-            # 从未打开编辑器，无法生成骨骼图，返回空图
-            return torch.zeros((1, height, width, 3)), ""
+            # 从未打开编辑器，返回默认情况
+            default_skeleton = scale_default_skeleton(width, height)
+            default_img = draw_pose(default_skeleton, None)
+            return image2tensor(default_img), json.dumps(
+                coco2skeleton(default_skeleton, width, height)
+            )
 
     @classmethod
     def IS_CHANGED(cls, width: int, height: int):
-        global base64_string
-        return base64_string
+        global skeleton_json_str
+        return skeleton_json_str
 
 
 class PoseKeypoint2Json:
@@ -66,14 +81,6 @@ class PoseKeypoint2Json:
 
     def to_json(self, image: torch.Tensor, pose_keypoints: list):
         return pose_kps2json(image, pose_keypoints)
-
-
-@PromptServer.instance.routes.post("/oe-konva/skeletonBase64")
-async def save_skeleton_base64(request: web.Request) -> web.Response:
-    global base64_string
-    data = await request.text()
-    base64_string = data.split(",")[1]
-    return web.json_response({"status": "ok"}, status=200)
 
 
 @PromptServer.instance.routes.post("/oe-konva/skeletonJson")
