@@ -58,8 +58,6 @@ comfy node scaffold
 
 此时.py文件中的红线会消失大半，.ts, .vue文件中的红线可能还有，这个就得碰运气了，有时候Code连 `import {...} from 'vue'`也会标红线，此时建议：要么重新运行 `npm i`，要么按Ctrl+Shift+P打开面板，然后选择“重启Vue语言服务器”，有可能就好了。计算机，很神奇吧~
 
-至于前端文件中把 `../../../scripts/app.js` 等内容标红，目前尚无解决办法。
-
 > 观察 `package.json` 会发现，其中的依赖项有 `dependencies` 和 `peerDependendies` 两项。它们的区别在于：NPM假设宿主机已经安装了 `peerDependencies` ，故不会主动安装这些包。在ComfyUI自定义节点的开发环境中，诸如 `vue-i18n, vue, primevue` 等组件已经由ComfyUI提供，故无需额外安装，且在 `vite.config.mts` 中还需要将它们列为 `externel` 。
 
 ### 编写前端
@@ -69,29 +67,25 @@ comfy node scaffold
 ```typescript
 // -- snip --
 
-// 这行是一定会被标红的，没办法
-import { app } from "../../../scripts/app.js";
+const app = window.comfyAPI.app.app;
 // 用它给 app.js 标注类型的话，可以利用自动补全写代码，很爽
 import type { ComfyApp } from '@comfyorg/comfyui-frontend-types'
 const comfyApp: ComfyApp = app;
 
-// 想要加载CSS吗？那就引入它吧
-import * as utils from '../../../scripts/utils.js';
+// 若要加载CSS，就必须引入utils
+const utils = window.comfyAPI.utils;
 // extensions是固定的
-// comfyui-mdnotes是自定义节点的目录名字
-// 后续内容和/js目录有关，而js目录结构取决于vite.config.mts
-// 具体来说是取决于build.rollupOptions.output以及build.outDir
-// 建议把build.rollupOptions.output.dir和build.outDir设置成一样的
-utils.addStylesheet("extensions/comfyui-mdnotes/assets/main.css");
+// <CUSTOM_NODE_DIR_NAME>是自定义节点的目录名字
+// 后续内容和/web目录有关，而web目录结构取决于vite.config.mts
+utils.addStylesheet("extensions/<CUSTOM_NODE_DIR_NAME>/assets/main.css");
 
 // -- snip --
 comfyApp.registerExtension({
-  name: "endericedragon.mdnotes",
+  name: "endericedragon.<CUSTOM_NODE_DIR_NAME>",
   // 装载一定要在页面元素都齐活之后再做
   async setup() {
     // 使用TS生成挂载点
     let mountPoint = document.createElement("div");
-    mountPoint.id = "mdnotes-ui";
     document.body.appendChild(mountPoint);
     // 然后把Vue组件挂载到挂载点上即可
     createApp(App).mount(mountPoint);
@@ -99,35 +93,24 @@ comfyApp.registerExtension({
 });
 ```
 
-> 这儿有两个点需要注意：
->
-> 1. 添加CSS的方法，就是 `utils.addStylesheet` 函数；其用法和参数在注释里写得很清楚了。
-> 2. （不稳定，存疑）添加其他自定义文件的办法，例如 `.json` 文件，放在项目根目录的 `public` 目录中，这样Vite在编译时就会把他们原封不动地复制到 `web` 目录下。再用 `utils.uploadFile` 即可上传该文件供其他代码使用。
-
-> 更新 [2025.12.12]
-> 
-> 现在引用app和utils的方法有所变化，不再会划红线了，具体而言，现在如此引用两者：
-> ```typescript
-> const app = window.comfyAPI.app.app;
-> const utils = window.comfyAPI.utils;
-> ```
+> 添加CSS的方法，就是 `utils.addStylesheet` 函数；其用法和参数在注释里写得很清楚了。
 
 注册右键菜单的方法如下：
 
 ```typescript
 comfyApp.registerExtension({
     name: "endericedragon.mdnotes",
-    async beforeRegisterNodeDef(nodeType, nodeData, app) {
-        let originalMenuOptions = nodeType.prototype.getExtraMenuOptions;
-        nodeType.prototype.getExtraMenuOptions = function (_, options) {
-            // 调用原始方法
-            originalMenuOptions?.apply(this, arguments);
-            // 新增菜单项
-            options.unshift({
-                    content: "Show lora note",
-                    callback: () => { ... }
-            });
-        }
+    async getNodeMenuItems(node) {
+        // 每次点击右键都会触发这个回调函数
+        return [
+            {
+              content: "Show Editor (or anything else)",
+              callback: () => {
+                  // do something
+              }
+          },
+          null, // divider
+        ]
     }
 });
 ```
