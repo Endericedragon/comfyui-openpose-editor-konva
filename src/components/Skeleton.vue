@@ -31,7 +31,8 @@ const props = defineProps({
 });
 const [stageWidth, stageHeight] = [props.width, props.height];
 // 初始的关节位置、名字和颜色。
-const joints = ref<Joint[]>(props.lastStageStatus?.lastJoints || (() => {
+// 在onMount中，会主动找后端同步最新的骨骼数据。
+const joints = ref<Joint[]>((() => {
   let res = DEFAULT_JOINTS();
   scaleJoints(res, stageWidth, stageHeight);
   return res;
@@ -91,7 +92,7 @@ function handleJointMove(e: Konva.KonvaEventObject<DragEvent>) {
  */
 function handleDialogClose(doSave: boolean) {
   // 保存舞台状态
-  const ss = new StageStatus(bgOpacity.value, bgConfig.value.image.src, joints.value);
+  const ss = new StageStatus(bgOpacity.value, bgConfig.value.image.src);
   if (!ss) { return; }
   // 保存骨骼图JSON
   if (doSave) {

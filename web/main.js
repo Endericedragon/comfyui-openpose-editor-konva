@@ -24934,16 +24934,13 @@ function resetMousePattern() {
   document.body.style.cursor = "default";
 }
 class StageStatus {
-  // 当前关节点的位置信息
-  constructor(opacity, bgImgBase64, currentJoints) {
+  // 背景图片的base64
+  constructor(opacity, bgImgBase64) {
     __publicField(this, "opacity");
     // 背景透明度
     __publicField(this, "bgImgBase64");
-    // 背景图片的base64
-    __publicField(this, "lastJoints");
     this.opacity = opacity;
     this.bgImgBase64 = bgImgBase64;
-    this.lastJoints = currentJoints;
   }
 }
 const joints = [[241, 77, [255, 0, 0]], [241, 120, [255, 85, 0]], [191, 118, [255, 170, 0]], [177, 183, [255, 255, 0]], [163, 252, [170, 255, 0]], [298, 118, [85, 255, 0]], [317, 182, [0, 255, 0]], [332, 245, [0, 255, 85]], [225, 241, [0, 255, 170]], [213, 359, [0, 255, 255]], [215, 454, [0, 170, 255]], [270, 240, [0, 85, 255]], [282, 360, [0, 0, 255]], [286, 456, [85, 0, 255]], [232, 59, [170, 0, 255]], [253, 60, [255, 0, 255]], [225, 70, [255, 0, 170]], [260, 72, [255, 0, 85]]];
@@ -25033,11 +25030,11 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
   },
   emits: ["afterClose"],
   setup(__props, { emit: __emit }) {
-    var _a2, _b, _c;
+    var _a2, _b;
     const emits = __emit;
     const props = __props;
     const [stageWidth, stageHeight] = [props.width, props.height];
-    const joints2 = ref(((_a2 = props.lastStageStatus) == null ? void 0 : _a2.lastJoints) || (() => {
+    const joints2 = ref((() => {
       let res = DEFAULT_JOINTS();
       scaleJoints(res, stageWidth, stageHeight);
       return res;
@@ -25059,9 +25056,9 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
       strokeWidth: 4
     });
     const showBackground = ref(true);
-    const bgOpacity = ref(((_b = props.lastStageStatus) == null ? void 0 : _b.opacity) || 0.4);
+    const bgOpacity = ref(((_a2 = props.lastStageStatus) == null ? void 0 : _a2.opacity) || 0.4);
     const imgTag = new Image();
-    imgTag.src = ((_c = props.lastStageStatus) == null ? void 0 : _c.bgImgBase64) || EMPTY_BASE64;
+    imgTag.src = ((_b = props.lastStageStatus) == null ? void 0 : _b.bgImgBase64) || EMPTY_BASE64;
     imgTag.style.overflow = "hidden";
     const bgScale = ref({ x: 1, y: 1 });
     const bgConfig = ref({
@@ -25085,7 +25082,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     }
     function handleDialogClose(doSave) {
       var _a3;
-      const ss = new StageStatus(bgOpacity.value, bgConfig.value.image.src, joints2.value);
+      const ss = new StageStatus(bgOpacity.value, bgConfig.value.image.src);
       if (!ss) {
         return;
       }
@@ -25527,7 +25524,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-50a5bb97"]]);
+const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-80959661"]]);
 const _sfc_main = /* @__PURE__ */ defineComponent({
   __name: "App",
   setup(__props) {
