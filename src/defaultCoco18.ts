@@ -1,45 +1,15 @@
 import { Joint, Bone } from "@/myUtils"
+import coco18 from "./coco18_data.json"
 
-const DEFAULT_JOINTS = () => [
-    new Joint(241, 77, "node", [255, 0, 0]),
-    new Joint(241, 120, "neck", [255, 85, 0]),
-    new Joint(191, 118, "right shoulder", [255, 170, 0]),
-    new Joint(177, 183, "right elbow", [255, 255, 0]),
-    new Joint(163, 252, "right wrist", [170, 255, 0]),
-    new Joint(298, 118, "left shoulder", [85, 255, 0]),
-    new Joint(317, 182, "left elbow", [0, 255, 0]),
-    new Joint(332, 245, "left wrist", [0, 255, 85]),
-    new Joint(225, 241, "right hip", [0, 255, 170]),
-    new Joint(213, 359, "right knee", [0, 255, 255]),
-    new Joint(215, 454, "right ankle", [0, 170, 255]),
-    new Joint(270, 240, "left hip", [0, 85, 255]),
-    new Joint(282, 360, "left knee", [0, 0, 255]),
-    new Joint(286, 456, "left ankle", [85, 0, 255]),
-    new Joint(232, 59, "right eye", [170, 0, 255]),
-    new Joint(253, 60, "left eye", [255, 0, 255]),
-    new Joint(225, 70, "right ear", [255, 0, 170]),
-    new Joint(260, 72, "left ear", [255, 0, 85]),
-];
+const DEFAULT_JOINTS = () => {
+    // @ts-ignore
+    return coco18.joints.map(joint => new Joint(joint[0], joint[1], joint[2]));
+};
 
-const DEFAULT_BONES = [
-    new Bone(1, 2, [153, 0, 0]),
-    new Bone(1, 5, [153, 51, 0]),
-    new Bone(2, 3, [153, 102, 0]),
-    new Bone(3, 4, [153, 153, 0]),
-    new Bone(5, 6, [102, 153, 0]),
-    new Bone(6, 7, [51, 153, 0]),
-    new Bone(1, 8, [0, 153, 0]),
-    new Bone(8, 9, [0, 153, 51]),
-    new Bone(9, 10, [0, 153, 102]),
-    new Bone(1, 11, [0, 153, 153]),
-    new Bone(11, 12, [0, 102, 153]),
-    new Bone(12, 13, [0, 51, 153]),
-    new Bone(1, 0, [0, 0, 153]),
-    new Bone(0, 14, [51, 0, 153]),
-    new Bone(14, 16, [102, 0, 153]),
-    new Bone(0, 15, [153, 0, 153]),
-    new Bone(15, 17, [153, 0, 102]),
-];
+const DEFAULT_BONES = (() => {
+    // @ts-ignore
+    return coco18.bones.map(bone => new Bone(bone[0], bone[1], bone[2]));
+})();
 
 function scaleJoints(joints: Joint[], stageWidth: number, stageHeight: number) {
     const scaleX = stageWidth / 480;
@@ -70,7 +40,7 @@ class SerializedJoints {
         return new SerializedJoints(stageWidth, stageHeight, joints.flatMap(joint => [joint.x, joint.y, 1]));
     }
 
-    toJoints() : Joint[] {
+    toJoints(): Joint[] {
         const pose = this.pose;
         let baseResult = DEFAULT_JOINTS();
         for (let i = 0; i < pose.length; i += 3) {

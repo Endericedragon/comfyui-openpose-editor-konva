@@ -5,13 +5,11 @@ function triple2ColorStr(tri: number[]): string {
 class Joint {
     x: number;
     y: number;
-    name: string;
     color: string;
 
-    constructor(x: number, y: number, name: string, color: number[]) {
+    constructor(x: number, y: number, color: number[]) {
         this.x = x;
         this.y = y;
-        this.name = name;
         this.color = triple2ColorStr(color);
     }
 }

@@ -1,17 +1,13 @@
 from aiohttp import web
-from io import BytesIO
-from PIL import Image
 from server import PromptServer
 
-import base64
-import numpy as np
 import pathlib
 import torch
 
+from .utils import base64_to_tensor, pose_kps2json
 
 base64_string = ""
 skeleton_json_str = ""
-THIS_NODE_DIR = pathlib.Path(__file__).parent
 
 
 class EditorController:
@@ -39,6 +35,7 @@ class EditorController:
     FUNCTION = "run"
 
     def run(self, width: int, height: int):
+        global base64_string, skeleton_json_str
         if base64_string and skeleton_json_str:
             return base64_to_tensor(base64_string), skeleton_json_str
         else:
@@ -51,6 +48,26 @@ class EditorController:
         return base64_string
 
 
+class PoseKeypoint2Json:
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "image": ("IMAGE",),
+                "pose_keypoint": ("POSE_KEYPOINT",),
+            }
+        }
+
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("Json String",)
+    FUNCTION = "to_json"
+    OUTPUT_NODE = True
+    CATEGORY = "OpenPose.Editor.Konva"
+
+    def to_json(self, image: torch.Tensor, pose_keypoints: list):
+        return pose_kps2json(image, pose_keypoints)
+
+
 @PromptServer.instance.routes.post("/oe-konva/skeletonBase64")
 async def save_skeleton_base64(request: web.Request) -> web.Response:
     global base64_string
@@ -58,46 +75,20 @@ async def save_skeleton_base64(request: web.Request) -> web.Response:
     base64_string = data.split(",")[1]
     return web.json_response({"status": "ok"}, status=200)
 
+
 @PromptServer.instance.routes.post("/oe-konva/skeletonJson")
-async def getSkeletonJson(req: web.Request):
+async def get_skeleton_json(req: web.Request):
     global skeleton_json_str
-    data = await req.text()
-    skeleton_json_str = data
+    skeleton_json_str = await req.text()
+    # with open(THIS_NODE_DIR / "skeleton.json", "w") as f:
+    #     f.write(skeleton_json_str)
     return web.json_response({"status": "ok"}, status=200)
-
-def base64_to_tensor(base64_str: str):
-    """
-    将 Base64 图片字符串转换为 torch.Tensor，形状为 [1, H, W, C] (RGB, 0-1)
-
-    Args:
-        base64_str: 包含图片数据的 Base64 字符串，带 data:image/xxx;base64, 前缀
-
-    Returns:
-        torch.Tensor: 形状 [1, H, W, C]，数据类型 torch.float32，值范围 0~1
-    """
-    # 1. 去除 data:image/xxx;base64, 前缀（如果存在）
-    if base64_str.startswith("data:image"):
-        base64_str = base64_str.split(",", 1)[-1]
-
-    # 2. Base64 解码为字节数据
-    image_bytes = base64.b64decode(base64_str)
-
-    # 3. 使用 PIL 打开图像
-    with Image.open(BytesIO(image_bytes)) as img:
-        # 转换为 RGB（去掉 alpha 通道，如果有）
-        img = img.convert("RGB")
-        # 获取 numpy 数组，形状 (H, W, C)
-        img_np = np.array(img).astype(np.float32) / 255.0  # 归一化到 [0,1]
-
-    # 4. 转换为 torch Tensor 并增加 batch 维度
-    tensor = torch.from_numpy(img_np).unsqueeze(0)  # [1, H, W, C]
-
-    return tensor
 
 
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "WEB_DIRECTORY"]
 NODE_CLASS_MAPPINGS = {
     "OpenPoseEditorKonva Controller": EditorController,
+    "OpenPoseEditorKonva PoseKeypoint2Json": PoseKeypoint2Json,
 }
 NODE_DISPLAY_NAME_MAPPINGS = dict()
 WEB_DIRECTORY = "./web"

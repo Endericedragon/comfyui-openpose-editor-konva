@@ -257,8 +257,36 @@ function triggerLoadSkeleton() {
 }
 function handleLoadSkeleton(e: Event) {
   uploadFileInEvent(e, "application/json", true, (result) => {
-    joints.value = SerializedJoints.deserialize(result).toJoints();
+    const uploadedInfo = SerializedJoints.deserialize(result);
+    if (uploadedInfo.width !== stageWidth || uploadedInfo.height !== stageHeight) {
+      comfyApp.extensionManager.toast.add({
+        severity: "warn",
+        summary: "Size unmatched!",
+        detail: `Skeleton size (${uploadedInfo.width}x${uploadedInfo.height}) does not match with editor size! (${stageWidth}x${stageHeight})`,
+        life: 3000,
+      });
+    }
+    joints.value = uploadedInfo.toJoints();
   });
+}
+// 下载骨骼JSON文件
+function triggerSaveSkeleton() {
+  // 创建blob对象
+  const serializedJoints = SerializedJoints.fromJoints(joints.value, stageWidth, stageHeight);
+  const jsonStr = serializedJoints.serialize();
+  const blob = new Blob([jsonStr], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  // 造一个链接
+  const link = document.createElement('a');
+  link.href = url;
+  link.style.display = "none";
+  link.download = 'skeleton.json';
+  document.body.appendChild(link);
+  link.click();
+
+  // 4. 清理：移除链接并释放对象 URL
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
 // 配置全局事件监听器，保证中键释放时关闭画布拖拽。
 // 同时，处理窗口大小变化时的事件，更新实际宽度。
@@ -292,19 +320,28 @@ onUnmounted(() => {
 
   <div class="oe-row">
     <InputGroup>
-      <InputGroupAddon class="opacity-slider">
-        <Slider v-model="bgOpacity" :max="1" :step="0.02" v-tooltip.bottom="'Background Opacity'" />
-      </InputGroupAddon>
       <InputGroupAddon>
+        <!-- 加载/下载骨骼JSON文件 -->
         <Button @click="triggerLoadSkeleton" v-tooltip.bottom="'Load Skeleton JSON'">
           <i class="pi pi-upload"></i>
         </Button>
       </InputGroupAddon>
       <InputGroupAddon>
+        <Button @click="triggerSaveSkeleton" v-tooltip.bottom="'Save Skeleton JSON'">
+          <i class="pi pi-download"></i>
+        </Button>
+      </InputGroupAddon>
+      <!-- 视角重置按钮 -->
+      <InputGroupAddon>
         <Button @click="handleCameraReset" v-tooltip.bottom="'Camera Reset'">
           <i class="pi pi-undo"></i>
         </Button>
       </InputGroupAddon>
+      <!-- 背景透明度滑块 -->
+      <InputGroupAddon class="opacity-slider">
+        <Slider v-model="bgOpacity" :max="1" :step="0.02" v-tooltip.bottom="'Background Opacity'" />
+      </InputGroupAddon>
+      <!-- 加载/卸载背景图片 -->
       <InputGroupAddon>
         <Button @click="triggerLoadImg" v-tooltip.bottom="'Load Background'">
           <i class="pi pi-image"></i>
@@ -315,6 +352,7 @@ onUnmounted(() => {
           <i class="pi pi-eraser"></i>
         </Button>
       </InputGroupAddon>
+      <!-- 保存/关闭按钮 -->
       <InputGroupAddon>
         <Button @click="handleSaveImageAndClose" v-tooltip.bottom="'Save and Close'" severity="success">
           <i class="pi pi-check"></i>

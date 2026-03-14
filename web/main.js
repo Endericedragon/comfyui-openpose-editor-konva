@@ -24896,14 +24896,12 @@ function triple2ColorStr(tri) {
   return `rgb(${tri.join(",")})`;
 }
 class Joint {
-  constructor(x2, y2, name, color) {
+  constructor(x2, y2, color) {
     __publicField(this, "x");
     __publicField(this, "y");
-    __publicField(this, "name");
     __publicField(this, "color");
     this.x = x2;
     this.y = y2;
-    this.name = name;
     this.color = triple2ColorStr(color);
   }
 }
@@ -24969,54 +24967,27 @@ class StageStatus {
     this.lastJoints = currentJoints;
   }
 }
-const DEFAULT_JOINTS = () => [
-  new Joint(241, 77, "node", [255, 0, 0]),
-  new Joint(241, 120, "neck", [255, 85, 0]),
-  new Joint(191, 118, "right shoulder", [255, 170, 0]),
-  new Joint(177, 183, "right elbow", [255, 255, 0]),
-  new Joint(163, 252, "right wrist", [170, 255, 0]),
-  new Joint(298, 118, "left shoulder", [85, 255, 0]),
-  new Joint(317, 182, "left elbow", [0, 255, 0]),
-  new Joint(332, 245, "left wrist", [0, 255, 85]),
-  new Joint(225, 241, "right hip", [0, 255, 170]),
-  new Joint(213, 359, "right knee", [0, 255, 255]),
-  new Joint(215, 454, "right ankle", [0, 170, 255]),
-  new Joint(270, 240, "left hip", [0, 85, 255]),
-  new Joint(282, 360, "left knee", [0, 0, 255]),
-  new Joint(286, 456, "left ankle", [85, 0, 255]),
-  new Joint(232, 59, "right eye", [170, 0, 255]),
-  new Joint(253, 60, "left eye", [255, 0, 255]),
-  new Joint(225, 70, "right ear", [255, 0, 170]),
-  new Joint(260, 72, "left ear", [255, 0, 85])
-];
-const DEFAULT_BONES = [
-  new Bone(1, 2, [153, 0, 0]),
-  new Bone(1, 5, [153, 51, 0]),
-  new Bone(2, 3, [153, 102, 0]),
-  new Bone(3, 4, [153, 153, 0]),
-  new Bone(5, 6, [102, 153, 0]),
-  new Bone(6, 7, [51, 153, 0]),
-  new Bone(1, 8, [0, 153, 0]),
-  new Bone(8, 9, [0, 153, 51]),
-  new Bone(9, 10, [0, 153, 102]),
-  new Bone(1, 11, [0, 153, 153]),
-  new Bone(11, 12, [0, 102, 153]),
-  new Bone(12, 13, [0, 51, 153]),
-  new Bone(1, 0, [0, 0, 153]),
-  new Bone(0, 14, [51, 0, 153]),
-  new Bone(14, 16, [102, 0, 153]),
-  new Bone(0, 15, [153, 0, 153]),
-  new Bone(15, 17, [153, 0, 102])
-];
-function scaleJoints(joints, stageWidth, stageHeight) {
+const joints = [[241, 77, [255, 0, 0]], [241, 120, [255, 85, 0]], [191, 118, [255, 170, 0]], [177, 183, [255, 255, 0]], [163, 252, [170, 255, 0]], [298, 118, [85, 255, 0]], [317, 182, [0, 255, 0]], [332, 245, [0, 255, 85]], [225, 241, [0, 255, 170]], [213, 359, [0, 255, 255]], [215, 454, [0, 170, 255]], [270, 240, [0, 85, 255]], [282, 360, [0, 0, 255]], [286, 456, [85, 0, 255]], [232, 59, [170, 0, 255]], [253, 60, [255, 0, 255]], [225, 70, [255, 0, 170]], [260, 72, [255, 0, 85]]];
+const bones = [[1, 2, [153, 0, 0]], [1, 5, [153, 51, 0]], [2, 3, [153, 102, 0]], [3, 4, [153, 153, 0]], [5, 6, [102, 153, 0]], [6, 7, [51, 153, 0]], [1, 8, [0, 153, 0]], [8, 9, [0, 153, 51]], [9, 10, [0, 153, 102]], [1, 11, [0, 153, 153]], [11, 12, [0, 102, 153]], [12, 13, [0, 51, 153]], [1, 0, [0, 0, 153]], [0, 14, [51, 0, 153]], [14, 16, [102, 0, 153]], [0, 15, [153, 0, 153]], [15, 17, [153, 0, 102]]];
+const coco18 = {
+  joints,
+  bones
+};
+const DEFAULT_JOINTS = () => {
+  return coco18.joints.map((joint) => new Joint(joint[0], joint[1], joint[2]));
+};
+const DEFAULT_BONES = (() => {
+  return coco18.bones.map((bone) => new Bone(bone[0], bone[1], bone[2]));
+})();
+function scaleJoints(joints2, stageWidth, stageHeight) {
   const scaleX = stageWidth / 480;
-  joints.map((joint) => {
+  joints2.map((joint) => {
     joint.x *= scaleX;
     joint.y *= scaleX;
   });
-  const deltaX = joints[1].x - Math.floor(stageWidth / 2);
-  const deltaY = joints[8].y - Math.floor(stageHeight / 2);
-  joints.map((joint) => {
+  const deltaX = joints2[1].x - Math.floor(stageWidth / 2);
+  const deltaY = joints2[8].y - Math.floor(stageHeight / 2);
+  joints2.map((joint) => {
     joint.x -= deltaX;
     joint.y -= deltaY;
   });
@@ -25031,8 +25002,8 @@ class SerializedJoints {
     this.height = height;
     this.pose = pose;
   }
-  static fromJoints(joints, stageWidth, stageHeight) {
-    return new SerializedJoints(stageWidth, stageHeight, joints.flatMap((joint) => [joint.x, joint.y, 1]));
+  static fromJoints(joints2, stageWidth, stageHeight) {
+    return new SerializedJoints(stageWidth, stageHeight, joints2.flatMap((joint) => [joint.x, joint.y, 1]));
   }
   toJoints() {
     const pose = this.pose;
@@ -25087,12 +25058,12 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     const emits = __emit;
     const props = __props;
     const [stageWidth, stageHeight] = [props.width, props.height];
-    const joints = ref(((_a2 = props.lastStageStatus) == null ? void 0 : _a2.lastJoints) || (() => {
+    const joints2 = ref(((_a2 = props.lastStageStatus) == null ? void 0 : _a2.lastJoints) || (() => {
       let res = DEFAULT_JOINTS();
       scaleJoints(res, stageWidth, stageHeight);
       return res;
     })());
-    const bones = ref(DEFAULT_BONES);
+    const bones2 = ref(DEFAULT_BONES);
     const stageRef = ref();
     const currentStageScale = ref(1);
     const stageConfig = ref({
@@ -25130,8 +25101,8 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
       const targetId = parseInt(target == null ? void 0 : target.id());
       const targetX = target == null ? void 0 : target.x();
       const targetY = target == null ? void 0 : target.y();
-      joints.value[targetId].x = targetX;
-      joints.value[targetId].y = targetY;
+      joints2.value[targetId].x = targetX;
+      joints2.value[targetId].y = targetY;
     }
     async function getSkeletonBase64() {
       var _a3;
@@ -25157,7 +25128,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     }
     function closeDialog() {
       var _a3;
-      const ss = new StageStatus(bgOpacity.value, bgConfig.value.image.src, joints.value);
+      const ss = new StageStatus(bgOpacity.value, bgConfig.value.image.src, joints2.value);
       if (!ss) {
         return;
       }
@@ -25230,7 +25201,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
       currentStageScale.value = newScale;
     }
     function handleSaveSkeleton() {
-      const serializedJoints = SerializedJoints.fromJoints(joints.value, stageWidth, stageHeight);
+      const serializedJoints = SerializedJoints.fromJoints(joints2.value, stageWidth, stageHeight);
       const jsonStr = serializedJoints.serialize();
       postTextData(comfyApp, "/oe-konva/skeletonJson", jsonStr);
     }
@@ -25283,8 +25254,31 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     }
     function handleLoadSkeleton(e2) {
       uploadFileInEvent(e2, "application/json", true, (result) => {
-        joints.value = SerializedJoints.deserialize(result).toJoints();
+        const uploadedInfo = SerializedJoints.deserialize(result);
+        if (uploadedInfo.width !== stageWidth || uploadedInfo.height !== stageHeight) {
+          comfyApp.extensionManager.toast.add({
+            severity: "warn",
+            summary: "Size unmatched!",
+            detail: `Skeleton size (${uploadedInfo.width}x${uploadedInfo.height}) does not match with editor size! (${stageWidth}x${stageHeight})`,
+            life: 3e3
+          });
+        }
+        joints2.value = uploadedInfo.toJoints();
       });
+    }
+    function triggerSaveSkeleton() {
+      const serializedJoints = SerializedJoints.fromJoints(joints2.value, stageWidth, stageHeight);
+      const jsonStr = serializedJoints.serialize();
+      const blob = new Blob([jsonStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.style.display = "none";
+      link.download = "skeleton.json";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     }
     const skeletonContainer = ref();
     onMounted(() => {
@@ -25316,24 +25310,6 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
         createBaseVNode("div", _hoisted_2, [
           createVNode(unref(script$3), null, {
             default: withCtx(() => [
-              createVNode(unref(script$2), { class: "opacity-slider" }, {
-                default: withCtx(() => [
-                  withDirectives(createVNode(unref(script), {
-                    modelValue: bgOpacity.value,
-                    "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => bgOpacity.value = $event),
-                    max: 1,
-                    step: 0.02
-                  }, null, 8, ["modelValue"]), [
-                    [
-                      _directive_tooltip,
-                      "Background Opacity",
-                      void 0,
-                      { bottom: true }
-                    ]
-                  ])
-                ]),
-                _: 1
-              }),
               createVNode(unref(script$2), null, {
                 default: withCtx(() => [
                   withDirectives((openBlock(), createBlock(unref(script$8), { onClick: triggerLoadSkeleton }, {
@@ -25354,8 +25330,26 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
               }),
               createVNode(unref(script$2), null, {
                 default: withCtx(() => [
-                  withDirectives((openBlock(), createBlock(unref(script$8), { onClick: handleCameraReset }, {
+                  withDirectives((openBlock(), createBlock(unref(script$8), { onClick: triggerSaveSkeleton }, {
                     default: withCtx(() => [..._cache[2] || (_cache[2] = [
+                      createBaseVNode("i", { class: "pi pi-download" }, null, -1)
+                    ])]),
+                    _: 1
+                  })), [
+                    [
+                      _directive_tooltip,
+                      "Save Skeleton JSON",
+                      void 0,
+                      { bottom: true }
+                    ]
+                  ])
+                ]),
+                _: 1
+              }),
+              createVNode(unref(script$2), null, {
+                default: withCtx(() => [
+                  withDirectives((openBlock(), createBlock(unref(script$8), { onClick: handleCameraReset }, {
+                    default: withCtx(() => [..._cache[3] || (_cache[3] = [
                       createBaseVNode("i", { class: "pi pi-undo" }, null, -1)
                     ])]),
                     _: 1
@@ -25370,10 +25364,28 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
                 ]),
                 _: 1
               }),
+              createVNode(unref(script$2), { class: "opacity-slider" }, {
+                default: withCtx(() => [
+                  withDirectives(createVNode(unref(script), {
+                    modelValue: bgOpacity.value,
+                    "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => bgOpacity.value = $event),
+                    max: 1,
+                    step: 0.02
+                  }, null, 8, ["modelValue"]), [
+                    [
+                      _directive_tooltip,
+                      "Background Opacity",
+                      void 0,
+                      { bottom: true }
+                    ]
+                  ])
+                ]),
+                _: 1
+              }),
               createVNode(unref(script$2), null, {
                 default: withCtx(() => [
                   withDirectives((openBlock(), createBlock(unref(script$8), { onClick: triggerLoadImg }, {
-                    default: withCtx(() => [..._cache[3] || (_cache[3] = [
+                    default: withCtx(() => [..._cache[4] || (_cache[4] = [
                       createBaseVNode("i", { class: "pi pi-image" }, null, -1)
                     ])]),
                     _: 1
@@ -25391,7 +25403,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
               createVNode(unref(script$2), null, {
                 default: withCtx(() => [
                   withDirectives((openBlock(), createBlock(unref(script$8), { onClick: handleClearBg }, {
-                    default: withCtx(() => [..._cache[4] || (_cache[4] = [
+                    default: withCtx(() => [..._cache[5] || (_cache[5] = [
                       createBaseVNode("i", { class: "pi pi-eraser" }, null, -1)
                     ])]),
                     _: 1
@@ -25412,7 +25424,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
                     onClick: handleSaveImageAndClose,
                     severity: "success"
                   }, {
-                    default: withCtx(() => [..._cache[5] || (_cache[5] = [
+                    default: withCtx(() => [..._cache[6] || (_cache[6] = [
                       createBaseVNode("i", { class: "pi pi-check" }, null, -1)
                     ])]),
                     _: 1
@@ -25433,7 +25445,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
                     onClick: closeDialog,
                     severity: "danger"
                   }, {
-                    default: withCtx(() => [..._cache[6] || (_cache[6] = [
+                    default: withCtx(() => [..._cache[7] || (_cache[7] = [
                       createBaseVNode("i", { class: "pi pi-times" }, null, -1)
                     ])]),
                     _: 1
@@ -25478,18 +25490,18 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
               }),
               createVNode(unref(oe), null, {
                 default: withCtx(() => [
-                  (openBlock(true), createElementBlock(Fragment, null, renderList(bones.value, (bone, idx) => {
+                  (openBlock(true), createElementBlock(Fragment, null, renderList(bones2.value, (bone, idx) => {
                     return openBlock(), createBlock(unref(re), {
                       key: "bone-" + idx,
                       config: {
-                        points: bone.getKonvaBonePoints(joints.value),
+                        points: bone.getKonvaBonePoints(joints2.value),
                         stroke: bone.color,
                         // strokeWidth: 5,
                         strokeWidth: 5 / currentStageScale.value
                       }
                     }, null, 8, ["config"]);
                   }), 128)),
-                  (openBlock(true), createElementBlock(Fragment, null, renderList(joints.value, (joint, idx) => {
+                  (openBlock(true), createElementBlock(Fragment, null, renderList(joints2.value, (joint, idx) => {
                     return openBlock(), createBlock(unref(H), {
                       class: "sk-joint",
                       config: {
@@ -25524,7 +25536,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-43489905"]]);
+const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-0028fc4c"]]);
 const _sfc_main = /* @__PURE__ */ defineComponent({
   __name: "App",
   setup(__props) {
