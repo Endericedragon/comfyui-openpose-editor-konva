@@ -2,6 +2,17 @@
 
 ## 概述 - Overview
 
+### 怎么用？- How to use this node?
+
+1. 搜索`OpenPoseEditorKonva Controller`节点，并将其添加到您的工作流。Search for `OpenPoseEditorKonva Controller` node, and add it to your workflow.
+2. 在其上右键，点击`Show OpenPose Editor (Konva)`选项。Right click on that node and click `Show OpenPose Editor (Konva)`.
+
+   ![image-20260314225212308](./README.assets/image-20260314225212308.png)
+
+3. 编辑器将会出现，您可拖动关节点调整骨骼姿势。鼠标滚轮可缩放画面，鼠标中键拖动可拖动画布。The editor would appear, and you could adjust the gesture of the skeleton by dragging those colored joints. Notice that you could also scroll to zoom it / out, and drag with the middle mouse button to move the canvas.
+
+   ![image-20260314225436027](./README.assets/image-20260314225436027.png)
+
 ## 开发配置步骤 - Development Configuration Steps
 
 若想尝试修改该自定义节点，或以该自定义节点为基础做二次开发，请按如下步骤配置开发环境。强烈推荐使用fnm来管理node.js版本，真的很好使！
