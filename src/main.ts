@@ -4,7 +4,7 @@ import { createApp } from "vue"
 import PrimeVue from "primevue/config";
 import Tooltip from 'primevue/tooltip';
 import Aura from '@primeuix/themes/aura';
-// import Nora from '@primeuix/themes/nora';
+import { definePreset } from "@primeuix/themes"
 
 // shared data types
 import { comfyApp, utils, EVENTS } from "./constants.js";
@@ -13,6 +13,13 @@ import App from "./App.vue"
 // extensions/comfyui-openpose-editor-konva是固定的，后续内容和/web目录有关
 const CSS_PATH = "extensions/comfyui-openpose-editor-konva/assets/style.css";
 utils.addStylesheet(CSS_PATH);
+
+// Copied from comfy-frontend-package
+const ComfyUIPreset = definePreset(Aura, {
+    semantic: {
+        primary: Aura['primitive'].blue
+    }
+})
 
 comfyApp.registerExtension({
     name: "endericedragon.comfyui-openpose-editor-konva",
@@ -70,7 +77,7 @@ comfyApp.registerExtension({
             .use(PrimeVue, {
                 // 不指定主题就爆炸，这是什么鬼事情？
                 theme: {
-                    preset: Aura
+                    preset: ComfyUIPreset
                 }
             })
             .directive('tooltip', Tooltip)

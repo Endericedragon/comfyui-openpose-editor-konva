@@ -31,4 +31,8 @@ const EVENTS = {
     showEditor: "showOpenPoseEditorKonva"
 };
 
-export { postTextData, comfyApp, utils, EVENTS };
+const EMPTY_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IB2cksfw" +
+    "AAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZiS0dEAP8A/wD/oL2nkwAAAAlw" + 
+    "SFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+oDDgIvDipUXqMAAAALSURBVAjXY2AAAgAABQAB4iYFmwAAAABJRU5ErkJggg==";
+
+export { postTextData, comfyApp, utils, EVENTS, EMPTY_BASE64 };

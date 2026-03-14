@@ -1,13 +1,17 @@
 from aiohttp import web
-from server import PromptServer
-import base64
 from io import BytesIO
 from PIL import Image
-from nodes import LoadImage
-import torch
+from server import PromptServer
+
+import base64
 import numpy as np
+import pathlib
+import torch
+
 
 base64_string = ""
+skeleton_json_str = ""
+THIS_NODE_DIR = pathlib.Path(__file__).parent
 
 
 class EditorController:
@@ -30,16 +34,21 @@ class EditorController:
             }
         }
 
-    RETURN_TYPES = ("IMAGE", "TEXT")
+    RETURN_TYPES = ("IMAGE", "STRING")
     RETURN_NAMES = ("COCO18 Image", "Skeleton JSON")
     FUNCTION = "run"
 
     def run(self, width: int, height: int):
-        return base64_to_tensor(base64_string), ""
+        if base64_string and skeleton_json_str:
+            return base64_to_tensor(base64_string), skeleton_json_str
+        else:
+            # 从未打开编辑器，无法生成骨骼图，返回空图
+            return torch.zeros((1, height, width, 3)), ""
 
     @classmethod
     def IS_CHANGED(cls, width: int, height: int):
-        return width, height, base64_string
+        global base64_string
+        return base64_string
 
 
 @PromptServer.instance.routes.post("/oe-konva/skeletonBase64")
@@ -49,13 +58,19 @@ async def save_skeleton_base64(request: web.Request) -> web.Response:
     base64_string = data.split(",")[1]
     return web.json_response({"status": "ok"}, status=200)
 
+@PromptServer.instance.routes.post("/oe-konva/skeletonJson")
+async def getSkeletonJson(req: web.Request):
+    global skeleton_json_str
+    data = await req.text()
+    skeleton_json_str = data
+    return web.json_response({"status": "ok"}, status=200)
 
 def base64_to_tensor(base64_str: str):
     """
     将 Base64 图片字符串转换为 torch.Tensor，形状为 [1, H, W, C] (RGB, 0-1)
 
     Args:
-        base64_str: 包含图片数据的 Base64 字符串，可能带 data:image/xxx;base64, 前缀
+        base64_str: 包含图片数据的 Base64 字符串，带 data:image/xxx;base64, 前缀
 
     Returns:
         torch.Tensor: 形状 [1, H, W, C]，数据类型 torch.float32，值范围 0~1

@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import 'primeicons/primeicons.css';
 import { Button, Slider, InputGroup, InputGroupAddon } from "primevue";
-import { ref, onMounted, onUnmounted, onBeforeUnmount, nextTick } from "vue";
+import { ref, onMounted, onUnmounted, nextTick } from "vue";
 import Konva from "konva";
 import { Stage as VStage, Layer as VLayer, Circle as VCircle, Line as VLine, Image as VImage, Rect as VRect } from 'vue-konva';
-import { setMousePattern, resetMousePattern } from "@/myUtils";
-import { CameraStatus } from "@/statusCache";
+import { setMousePattern, resetMousePattern, Joint } from "@/myUtils";
+import { CameraStatus, StageStatus } from "@/statusCache";
 import { DEFAULT_JOINTS, DEFAULT_BONES, scaleJoints, SerializedJoints } from "@/defaultCoco18";
-import { comfyApp, postTextData } from "@/constants";
+import { comfyApp, EMPTY_BASE64, postTextData } from "@/constants";
+
+const emits = defineEmits(["afterClose"]);
 
 const SCALE_BY = 1.1;
 // 从外界传入宽度和高度。
@@ -20,12 +22,20 @@ const props = defineProps({
     type: Number,
     default: 512,
   },
+  closeCallback: {
+    type: Function,
+  },
+  lastStageStatus: {
+    type: StageStatus,
+  }
 });
 const [stageWidth, stageHeight] = [props.width, props.height];
 // 初始的关节位置、名字和颜色。
-const joints = ref(DEFAULT_JOINTS());
-// 缩放关节位置，使其适应舞台大小。
-scaleJoints(joints.value, stageWidth, stageHeight);
+const joints = ref<Joint[]>(props.lastStageStatus?.lastJoints || (() => {
+  let res = DEFAULT_JOINTS();
+  scaleJoints(res, stageWidth, stageHeight);
+  return res;
+})());
 // 初始的骨头连接关系和颜色。均为定值。
 const bones = ref(DEFAULT_BONES);
 // 舞台的一些配置。
@@ -46,9 +56,9 @@ const rectConfig = ref({
   strokeWidth: 4,
 });
 const showBackground = ref(true);
-const bgOpacity = ref(0.4);
+const bgOpacity = ref(props.lastStageStatus?.opacity || 0.4);
 const imgTag = new Image();
-imgTag.src = "";
+imgTag.src = props.lastStageStatus?.bgImgBase64 || EMPTY_BASE64;
 imgTag.style.overflow = "hidden";
 const bgScale = ref({ x: 1, y: 1 });
 const bgConfig = ref({
@@ -102,10 +112,24 @@ async function getSkeletonBase64() {
   stage.batchDraw();
   return imgBase64;
 }
-async function handleSaveImage() {
+/**
+ * 保存骨骼图并关闭窗口
+ */
+function closeDialog() {
+  // 保存舞台状态
+  const ss = new StageStatus(bgOpacity.value, bgConfig.value.image.src, joints.value);
+  if (!ss) { return; }
+  // 保存骨骼图JSON
+  handleSaveSkeleton();
+  // 通知父组件更新状态
+  emits("afterClose", ss);
+  props.closeCallback?.();
+}
+async function handleSaveImageAndClose() {
   const imgBase64 = await getSkeletonBase64();
   if (!imgBase64) { return; }
   postTextData(comfyApp, "/oe-konva/skeletonBase64", imgBase64);
+  closeDialog();
 }
 /**
  * 重置相机位置和缩放比例
@@ -177,7 +201,8 @@ function handleWheel(e: Konva.KonvaEventObject<WheelEvent>) {
 function handleSaveSkeleton() {
   const serializedJoints = SerializedJoints.fromJoints(joints.value, stageWidth, stageHeight);
   const jsonStr = serializedJoints.serialize();
-  navigator.clipboard.writeText(jsonStr);
+  // Send to backend
+  postTextData(comfyApp, "/oe-konva/skeletonJson", jsonStr);
 }
 /**
  * 加载背景图片
@@ -222,6 +247,9 @@ function handleLoadImg(e: Event) {
     // 之前已经设计过imgTag.onload 事件，因此这里不需要再处理。
   });
 }
+function handleClearBg() {
+  imgTag.src = EMPTY_BASE64;
+}
 // 加载骨骼图JSON文件
 const jsonInputRef = ref<HTMLInputElement>();
 function triggerLoadSkeleton() {
@@ -250,11 +278,6 @@ onUnmounted(() => {
   // window.removeEventListener("resize", handleResize);
 
 });
-onBeforeUnmount(() => {
-  handleSaveImage().then(() => {
-    console.log("Image saved!");
-  });
-});
 </script>
 
 <template>
@@ -269,10 +292,8 @@ onBeforeUnmount(() => {
 
   <div class="oe-row">
     <InputGroup>
-      <InputGroupAddon>
-        <Button @click="handleCameraReset" v-tooltip.bottom="'Camera Reset'">
-          <i class="pi pi-undo"></i>
-        </Button>
+      <InputGroupAddon class="opacity-slider">
+        <Slider v-model="bgOpacity" :max="1" :step="0.02" v-tooltip.bottom="'Background Opacity'" />
       </InputGroupAddon>
       <InputGroupAddon>
         <Button @click="triggerLoadSkeleton" v-tooltip.bottom="'Load Skeleton JSON'">
@@ -280,8 +301,8 @@ onBeforeUnmount(() => {
         </Button>
       </InputGroupAddon>
       <InputGroupAddon>
-        <Button @click="handleSaveImage" v-tooltip.bottom="'Save Image Base64'">
-          <i class="pi pi-save"></i>
+        <Button @click="handleCameraReset" v-tooltip.bottom="'Camera Reset'">
+          <i class="pi pi-undo"></i>
         </Button>
       </InputGroupAddon>
       <InputGroupAddon>
@@ -289,8 +310,20 @@ onBeforeUnmount(() => {
           <i class="pi pi-image"></i>
         </Button>
       </InputGroupAddon>
-      <InputGroupAddon class="opacity-slider">
-        <Slider v-model="bgOpacity" :max="1" :step="0.02" v-tooltip.bottom="'Background Opacity'" />
+      <InputGroupAddon>
+        <Button @click="handleClearBg" v-tooltip.bottom="'Clear Background'">
+          <i class="pi pi-eraser"></i>
+        </Button>
+      </InputGroupAddon>
+      <InputGroupAddon>
+        <Button @click="handleSaveImageAndClose" v-tooltip.bottom="'Save and Close'" severity="success">
+          <i class="pi pi-check"></i>
+        </Button>
+      </InputGroupAddon>
+      <InputGroupAddon>
+        <Button @click="closeDialog" v-tooltip.bottom="'Close without Saving'" severity="danger">
+          <i class="pi pi-times"></i>
+        </Button>
       </InputGroupAddon>
     </InputGroup>
   </div>
@@ -348,7 +381,7 @@ onBeforeUnmount(() => {
 }
 
 .oe-row>* {
-  margin: 2em;
+  margin: 0.5em;
   transition: 0.2s;
   opacity: 0.4;
   z-index: 1 !important;
