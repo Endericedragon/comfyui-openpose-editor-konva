@@ -101,6 +101,12 @@ async def get_skeleton_json(req: web.Request):
     return web.json_response({"status": "ok"}, status=200)
 
 
+@PromptServer.instance.routes.post(ROUTES["get-skeleton-json-from-backend"])
+async def send_skeleton_json(_: web.Request):
+    global skeleton_json_str
+    return web.json_response(skeleton_json_str, status=200)
+
+
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "WEB_DIRECTORY"]
 NODE_CLASS_MAPPINGS = {
     "OpenPoseEditorKonva Controller": EditorController,

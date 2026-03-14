@@ -172,7 +172,27 @@ function handleSendSkeleton() {
   const serializedJoints = SerializedJoints.fromJoints(joints.value, stageWidth, stageHeight);
   const jsonStr = serializedJoints.serialize();
   // Send to backend
-  postTextData(comfyApp, ROUTES["send-skeleton-json-to-backend"], jsonStr);
+  postTextData(comfyApp, ROUTES["send-skeleton-json-to-backend"], jsonStr).then(
+    (_) => {
+      comfyApp.extensionManager.toast.add({
+        severity: "success",
+        summary: "OE-Konva Success",
+        detail: "Skeleton JSON sent to backend!",
+        life: 3000
+      });
+    }
+  );
+}
+/**
+ * 从后端加载骨骼图JSON
+ */
+function tryLoadSkeletonFromBackend() {
+  postTextData(comfyApp, ROUTES["get-skeleton-json-from-backend"], "").then(
+    jsonJsonStr => {
+      // 由于postTextData只能传递字符串，所以需要解析两次，一次在这里，一次在SerializedJoints.deserialize中
+      const info = SerializedJoints.deserialize(JSON.parse(jsonJsonStr));
+      joints.value = info.toJoints();
+    });
 }
 /**
  * 加载背景图片
@@ -274,22 +294,14 @@ function handleResetSkeleton() {
   scaleJoints(joints.value, stageWidth, stageHeight);
 }
 // 配置全局事件监听器，保证中键释放时关闭画布拖拽。
-// 同时，处理窗口大小变化时的事件，更新实际宽度。
 const skeletonContainer = ref<Element>();
-// let actualWidth = ref(0);
-// function handleResize() {
-//   actualWidth.value = skeletonContainer.value?.clientWidth || 0;
-// }
 onMounted(() => {
   skeletonContainer.value = document.getElementsByClassName("skeleton-container")[0];
-  // handleResize();
-  // window.addEventListener("resize", handleResize);
   window.addEventListener("mouseup", handleMouseRelease);
+  tryLoadSkeletonFromBackend();
 });
 onUnmounted(() => {
   window.removeEventListener("mouseup", handleMouseRelease);
-  // window.removeEventListener("resize", handleResize);
-
 });
 </script>
 

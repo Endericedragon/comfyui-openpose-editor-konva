@@ -9655,7 +9655,8 @@ var Nr, Qr = (Nr = ((r2, e2) => {
 })({}, e$R), e(Nr, m({ components: { accordion: c$p, autocomplete: a$F, avatar: n$B, badge: d$v, blockui: o$1h, breadcrumb: t$D, button: e$Q, card: d$u, carousel: t$B, cascadeselect: f$8, checkbox: e$N, chip: s$8, colorpicker: s$7, confirmdialog: r$15, confirmpopup: a$A, contextmenu: c$k, datatable: k$2, dataview: c$i, datepicker: k$1, dialog: e$F, divider: t$w, dock: d$o, drawer: e$D, editor: l$a, fieldset: e$B, fileupload: i$j, floatlabel: d$k, galleria: l$9, iconfield: r$S, iftalabel: i$g, image: e$y, imagecompare: r$Q, inlinemessage: a$q, inplace: n$q, inputchips: f$4, inputgroup: o$O, inputnumber: a$p, inputotp: e$v, inputtext: d$h, knob: c$f, listbox: n$o, megamenu: g$1, menu: r$G, menubar: e$s, message: u$3, metergroup: b$2, multiselect: n$j, orderlist: o$D, organizationchart: n$i, overlaybadge: t$j, paginator: n$h, panel: a$h, panelmenu: a$g, password: n$e, picklist: o$w, popover: e$k, progressbar: t$f, progressspinner: r$s, radiobutton: e$i, rating: i$8, ripple: o$q, scrollpanel: a$d, select: n$d, selectbutton: d$9, skeleton: o$m, slider: a$a, speeddial: a$9, splitbutton: d$8, splitter: t$c, stepper: i$6, steps: c$9, tabmenu: n$8, tabs: i$5, tabview: e$b, tag: n$5, terminal: e$a, textarea: d$5, tieredmenu: c$5, timeline: d$4, toast: u$2, togglebutton: c$3, toggleswitch: c$2, toolbar: r$5, tooltip: e$5, tree: d$2, treeselect: a$2, treetable: k, virtualscroller: e$1 } })));
 var t = (...t2) => ke(...t2);
 const ROUTES = {
-  "send-skeleton-json-to-backend": "/oe-konva/send-skeleton-json-to-backend"
+  "send-skeleton-json-to-backend": "/oe-konva/send-skeleton-json-to-backend",
+  "get-skeleton-json-from-backend": "/oe-konva/get-skeleton-json-from-backend"
 };
 const cuWin = window;
 const comfyApp = cuWin.comfyAPI.app.app;
@@ -9672,7 +9673,7 @@ async function postTextData(app, route, text) {
     default:
       comfyApp.extensionManager.toast.add({
         severity: "error",
-        summary: "MDNotes Error",
+        summary: "OE-Konva Error",
         detail: `Status code = ${resp.status}`,
         life: 3e3
       });
@@ -25003,9 +25004,9 @@ class SerializedJoints {
       ]
     });
   }
-  static deserialize(json) {
-    const data4 = JSON.parse(json);
-    return new SerializedJoints(data4.width, data4.height, data4.people[0].pose_keypoints_2d);
+  static deserialize(jsonStr) {
+    let jsonData = JSON.parse(jsonStr);
+    return new SerializedJoints(jsonData.width, jsonData.height, jsonData.people[0].pose_keypoints_2d);
   }
 }
 const _hoisted_1 = { style: { "display": "none" } };
@@ -25153,7 +25154,24 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     function handleSendSkeleton() {
       const serializedJoints = SerializedJoints.fromJoints(joints2.value, stageWidth, stageHeight);
       const jsonStr = serializedJoints.serialize();
-      postTextData(comfyApp, ROUTES["send-skeleton-json-to-backend"], jsonStr);
+      postTextData(comfyApp, ROUTES["send-skeleton-json-to-backend"], jsonStr).then(
+        (_2) => {
+          comfyApp.extensionManager.toast.add({
+            severity: "success",
+            summary: "OE-Konva Success",
+            detail: "Skeleton JSON sent to backend!",
+            life: 3e3
+          });
+        }
+      );
+    }
+    function tryLoadSkeletonFromBackend() {
+      postTextData(comfyApp, ROUTES["get-skeleton-json-from-backend"], "").then(
+        (jsonJsonStr) => {
+          const info = SerializedJoints.deserialize(JSON.parse(jsonJsonStr));
+          joints2.value = info.toJoints();
+        }
+      );
     }
     const fileInputRef = ref();
     function triggerLoadImg() {
@@ -25238,6 +25256,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     onMounted(() => {
       skeletonContainer.value = document.getElementsByClassName("skeleton-container")[0];
       window.addEventListener("mouseup", handleMouseRelease);
+      tryLoadSkeletonFromBackend();
     });
     onUnmounted(() => {
       window.removeEventListener("mouseup", handleMouseRelease);
@@ -25508,7 +25527,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-44ae6672"]]);
+const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-50a5bb97"]]);
 const _sfc_main = /* @__PURE__ */ defineComponent({
   __name: "App",
   setup(__props) {

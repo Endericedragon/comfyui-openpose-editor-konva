@@ -21,7 +21,7 @@ async function postTextData(app: ComfyApp, route: string, text: string) {
         default:
             comfyApp.extensionManager.toast.add({
                 severity: "error",
-                summary: "MDNotes Error",
+                summary: "OE-Konva Error",
                 detail: `Status code = ${resp.status}`,
                 life: 3000
             });

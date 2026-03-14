@@ -62,9 +62,9 @@ class SerializedJoints {
         });
     }
 
-    static deserialize(json: string): SerializedJoints {
-        const data = JSON.parse(json);
-        return new SerializedJoints(data.width, data.height, data.people[0].pose_keypoints_2d);
+    static deserialize(jsonStr: string): SerializedJoints {
+        let jsonData = JSON.parse(jsonStr);
+        return new SerializedJoints(jsonData.width, jsonData.height, jsonData.people[0].pose_keypoints_2d);
     }
 }
 
