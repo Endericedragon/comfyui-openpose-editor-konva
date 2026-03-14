@@ -189,10 +189,14 @@ function handleSendSkeleton() {
  */
 function tryLoadSkeletonFromBackend() {
   postTextData(comfyApp, ROUTES["get-skeleton-json-from-backend"], "").then(
-    jsonJsonStr => {
+    jsonStr => {
       // 由于postTextData只能传递字符串，所以需要解析两次，一次在这里，一次在SerializedJoints.deserialize中
-      const info = SerializedJoints.deserialize(JSON.parse(jsonJsonStr));
-      joints.value = info.toJoints();
+      // const info = SerializedJoints.deserialize(jsonData);
+      if (jsonStr) {
+        const bruh = JSON.parse(jsonStr)
+        const info = new SerializedJoints(bruh.width, bruh.height, bruh.people[0].pose_keypoints_2d);
+        joints.value = info.toJoints();
+      }
     });
 }
 /**

@@ -60,7 +60,6 @@ comfyApp.registerExtension({
     async setup() {
         // @ts-ignore: Why?
         comfyApp.api.addEventListener("using-default", (e) => {
-            console.log(e);
             comfyApp.extensionManager.toast.add({
                 severity: "warn",
                 summary: "Using Default",

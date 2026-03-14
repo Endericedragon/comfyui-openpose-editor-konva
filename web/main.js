@@ -9669,7 +9669,7 @@ async function postTextData(app, route, text) {
   });
   switch (resp.status) {
     case 200:
-      return resp.text();
+      return resp.json();
     default:
       comfyApp.extensionManager.toast.add({
         severity: "error",
@@ -25164,9 +25164,12 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     }
     function tryLoadSkeletonFromBackend() {
       postTextData(comfyApp, ROUTES["get-skeleton-json-from-backend"], "").then(
-        (jsonJsonStr) => {
-          const info = SerializedJoints.deserialize(JSON.parse(jsonJsonStr));
-          joints2.value = info.toJoints();
+        (jsonStr) => {
+          if (jsonStr) {
+            const bruh = JSON.parse(jsonStr);
+            const info = new SerializedJoints(bruh.width, bruh.height, bruh.people[0].pose_keypoints_2d);
+            joints2.value = info.toJoints();
+          }
         }
       );
     }
@@ -25524,7 +25527,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-80959661"]]);
+const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-1f7ddd27"]]);
 const _sfc_main = /* @__PURE__ */ defineComponent({
   __name: "App",
   setup(__props) {
@@ -25608,7 +25611,6 @@ comfyApp.registerExtension({
   },
   async setup() {
     comfyApp.api.addEventListener("using-default", (e2) => {
-      console.log(e2);
       comfyApp.extensionManager.toast.add({
         severity: "warn",
         summary: "Using Default",

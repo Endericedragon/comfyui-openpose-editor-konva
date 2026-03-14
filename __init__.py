@@ -7,7 +7,7 @@ from .utils import (
     draw_pose_coco18_only,
     image2tensor,
     load_default_coco18,
-    pose_kps2json,
+    pose_kp2json,
     scale_default_coco18,
     use_routes,
 )
@@ -31,11 +31,23 @@ class EditorController:
             "required": {
                 "width": (
                     "INT",
-                    {"default": 512, "step": 64, "display": "Width"},
+                    {
+                        "default": 512,
+                        "step": 64,
+                        "min": 64,
+                        "max": 6400,
+                        "display": "Width",
+                    },
                 ),
                 "height": (
                     "INT",
-                    {"default": 512, "step": 64, "display": "Height"},
+                    {
+                        "default": 512,
+                        "step": 64,
+                        "min": 64,
+                        "max": 6400,
+                        "display": "Height",
+                    },
                 ),
             }
         }
@@ -85,19 +97,15 @@ class PoseKeypoint2Json:
     OUTPUT_NODE = True
     CATEGORY = "OpenPose.Editor.Konva"
 
-    def to_json(self, image: torch.Tensor, pose_keypoints: list):
-        return pose_kps2json(image, pose_keypoints)
-
-
-import websocket
+    def to_json(self, image: torch.Tensor, pose_keypoint: list):
+        res = pose_kp2json(image, pose_keypoint)
+        return (str(res),)
 
 
 @PromptServer.instance.routes.post(ROUTES["send-skeleton-json-to-backend"])
 async def get_skeleton_json(req: web.Request):
     global skeleton_json_str
     skeleton_json_str = await req.text()
-    # with open(THIS_NODE_DIR / "skeleton.json", "w") as f:
-    #     f.write(skeleton_json_str)
     return web.json_response({"status": "ok"}, status=200)
 
 

@@ -17,7 +17,7 @@ async function postTextData(app: ComfyApp, route: string, text: string) {
     });
     switch (resp.status) {
         case 200:
-            return resp.text();
+            return resp.json();
         default:
             comfyApp.extensionManager.toast.add({
                 severity: "error",

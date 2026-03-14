@@ -69,15 +69,16 @@ def draw_pose_coco18_only(
         draw.line(
             [(x1 * scale_by, y1 * scale_by), (x2 * scale_by, y2 * scale_by)],
             fill=tuple(color),
-            width=scale_by * 6,
+            width=scale_by * 9,
         )
     # 1.2 再画关节
     for joint in coco18_data["joints"]:
         x, y, color = joint
+        r = 8
         draw.ellipse(
             [
-                ((x - 5) * scale_by, (y - 5) * scale_by),
-                ((x + 5) * scale_by, (y + 5) * scale_by),
+                ((x - r) * scale_by, (y - r) * scale_by),
+                ((x + r) * scale_by, (y + r) * scale_by),
             ],
             fill=tuple(color),
         )
@@ -138,7 +139,7 @@ def scale_default_coco18(width: int, height: int) -> Coco18Data:
     return data
 
 
-def pose_kps2json(image_tensor: torch.Tensor, pose_keypoints: list[PoseKeypoint]):
+def pose_kp2json(image_tensor: torch.Tensor, pose_keypoint: list[PoseKeypoint]):
     """
     将 pose_keypoints 数据转换为 JSON 字符串
 
@@ -157,7 +158,7 @@ def pose_kps2json(image_tensor: torch.Tensor, pose_keypoints: list[PoseKeypoint]
     # 2. 从复杂的 POSE_KEYPOINT 数据中提取出 "people" 列表
     processed_people = []
 
-    for pose_kp in pose_keypoints:
+    for pose_kp in pose_keypoint:
         people_in_dict = pose_kp.get("people", [])
         for person in people_in_dict:
             original_keypoints = person.get("pose_keypoints_2d", [])
@@ -172,7 +173,6 @@ def pose_kps2json(image_tensor: torch.Tensor, pose_keypoints: list[PoseKeypoint]
         "height": int(image_height),
         "people": processed_people,
     }
-
     return json.dumps(data_to_return)
 
 
