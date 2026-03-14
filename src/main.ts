@@ -33,11 +33,6 @@ comfyApp.registerExtension({
     ],
     getNodeMenuItems(node) {
         // 每次点击右键都会触发这个回调函数
-        // //! 调试用，正式发布时记得注释掉
-        // for (let widget of node.widgets) {
-        //     console.log(widget.name?.toString());
-        // }
-
         const nodeTypeStr = node.type;
         const widgets = node.widgets;
         const widthWidget = widgets?.find(w => w.name.toLowerCase() === "width");
@@ -61,15 +56,18 @@ comfyApp.registerExtension({
         } else {
             return [];
         }
-
-        // comfyApp.extensionManager.toast.add({
-        //     severity: "warn",
-        //     life: 3000,
-        //     summary: "MDNotes Warning",
-        //     detail: "Found no note, ready to create one",
-        // });
     },
     async setup() {
+        // @ts-ignore: Why?
+        comfyApp.api.addEventListener("using-default", (e) => {
+            console.log(e);
+            comfyApp.extensionManager.toast.add({
+                severity: "warn",
+                summary: "Using Default",
+                detail: "Using default skeleton. Please save your work before closing the editor.",
+                life: 3000
+            })
+        });
         let mountPoint = document.createElement("div");
         mountPoint.id = "oe-konva-ui";
         document.body.appendChild(mountPoint);

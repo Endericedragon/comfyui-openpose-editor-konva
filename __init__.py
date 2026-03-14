@@ -4,10 +4,12 @@ from .utils import (
     SkeletonData,
     coco2skeleton,
     draw_pose,
+    draw_pose_coco18_only,
     image2tensor,
     load_default_coco18,
     pose_kps2json,
-    scale_default_skeleton,
+    scale_default_coco18,
+    use_routes,
 )
 
 import json
@@ -15,6 +17,7 @@ import torch
 
 
 skeleton_json_str = ""
+ROUTES = use_routes()
 
 
 class EditorController:
@@ -41,26 +44,29 @@ class EditorController:
     RETURN_NAMES = ("COCO18 Image", "Skeleton JSON")
     FUNCTION = "run"
 
-    def run(self, width: int, height: int):
+    async def run(self, width: int, height: int):
         global skeleton_json_str
         if skeleton_json_str:
             skeleton_data: SkeletonData = json.loads(skeleton_json_str)
             return (
-                image2tensor(draw_pose(load_default_coco18(), skeleton_data)),
+                image2tensor(draw_pose(skeleton_data)),
                 skeleton_json_str,
             )
         else:
             # 从未打开编辑器，返回默认情况
-            default_skeleton = scale_default_skeleton(width, height)
-            default_img = draw_pose(default_skeleton, None)
+            PromptServer.instance.send_sync(
+                "using-default", {"width": width, "height": height}
+            )
+            scaled_coco18 = scale_default_coco18(width, height)
+            default_img = draw_pose_coco18_only(width, height, scaled_coco18)
             return image2tensor(default_img), json.dumps(
-                coco2skeleton(default_skeleton, width, height)
+                coco2skeleton(scaled_coco18, width, height)
             )
 
     @classmethod
     def IS_CHANGED(cls, width: int, height: int):
         global skeleton_json_str
-        return skeleton_json_str
+        return "{}({}*{})".format(skeleton_json_str, width, height)
 
 
 class PoseKeypoint2Json:
@@ -83,7 +89,10 @@ class PoseKeypoint2Json:
         return pose_kps2json(image, pose_keypoints)
 
 
-@PromptServer.instance.routes.post("/oe-konva/skeletonJson")
+import websocket
+
+
+@PromptServer.instance.routes.post(ROUTES["send-skeleton-json-to-backend"])
 async def get_skeleton_json(req: web.Request):
     global skeleton_json_str
     skeleton_json_str = await req.text()

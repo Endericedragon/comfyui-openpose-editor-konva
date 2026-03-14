@@ -7,7 +7,7 @@ import { Stage as VStage, Layer as VLayer, Circle as VCircle, Line as VLine, Ima
 import { setMousePattern, resetMousePattern, Joint } from "@/myUtils";
 import { StageStatus } from "@/statusCache";
 import { DEFAULT_JOINTS, DEFAULT_BONES, scaleJoints, SerializedJoints } from "@/defaultCoco18";
-import { comfyApp, EMPTY_BASE64, postTextData } from "@/constants";
+import { comfyApp, EMPTY_BASE64, postTextData, ROUTES } from "@/constants";
 
 const emits = defineEmits(["afterClose"]);
 
@@ -89,13 +89,13 @@ function handleJointMove(e: Konva.KonvaEventObject<DragEvent>) {
 /**
  * 关闭窗口，可选择是否保存骨骼Json
  */
-function closeDialog(doSave: boolean) {
+function handleDialogClose(doSave: boolean) {
   // 保存舞台状态
   const ss = new StageStatus(bgOpacity.value, bgConfig.value.image.src, joints.value);
   if (!ss) { return; }
   // 保存骨骼图JSON
   if (doSave) {
-    handleSaveSkeleton();
+    handleSendSkeleton();
     // 通知父组件更新状态
     emits("afterClose", ss);
   }
@@ -118,7 +118,7 @@ function handleCameraReset() {
 /**
  * 处理舞台鼠标按下事件，如果按下的是鼠标中键，则将舞台设置为可拖动状态。
  */
-function handleStagePress(e: Konva.KonvaEventObject<MouseEvent>) {
+function handleStageMidDrag(e: Konva.KonvaEventObject<MouseEvent>) {
   const mouseKey = e.evt.button;
   if (mouseKey === 1) {
     // Middle key
@@ -168,11 +168,11 @@ function handleWheel(e: Konva.KonvaEventObject<WheelEvent>) {
 /**
  * 导出骨骼图的JSON编码，然后传回后端
  */
-function handleSaveSkeleton() {
+function handleSendSkeleton() {
   const serializedJoints = SerializedJoints.fromJoints(joints.value, stageWidth, stageHeight);
   const jsonStr = serializedJoints.serialize();
   // Send to backend
-  postTextData(comfyApp, "/oe-konva/skeletonJson", jsonStr);
+  postTextData(comfyApp, ROUTES["send-skeleton-json-to-backend"], jsonStr);
 }
 /**
  * 加载背景图片
@@ -214,7 +214,7 @@ function uploadFileInEvent(
 /**
  * 用上传的图片替换当前背景
  */
-function handleLoadImg(e: Event) {
+function handleLoadBg(e: Event) {
   uploadFileInEvent(e, "image/", false, (base64str) => {
     imgTag.src = base64str;
     // 之前已经设计过imgTag.onload 事件，因此这里不需要再处理。
@@ -248,7 +248,7 @@ function handleLoadSkeleton(e: Event) {
 /** 
  * 下载骨骼JSON文件
  */
-function triggerSaveSkeleton() {
+function triggerDownloadSkeleton() {
   // 创建blob对象
   const serializedJoints = SerializedJoints.fromJoints(joints.value, stageWidth, stageHeight);
   const jsonStr = serializedJoints.serialize();
@@ -297,7 +297,7 @@ onUnmounted(() => {
   <!-- <span>Actual Width: {{ actualWidth }}</span> -->
   <!-- 隐藏的输入栏，点击它就会加载图片并触发@change函数 -->
   <div style="display: none">
-    <input type="file" ref="fileInputRef" accept="image/*" @change="handleLoadImg" />
+    <input type="file" ref="fileInputRef" accept="image/*" @change="handleLoadBg" />
     <input type="file" ref="jsonInputRef" accept="application/json" @change="handleLoadSkeleton" />
   </div>
 
@@ -312,7 +312,7 @@ onUnmounted(() => {
         </Button>
       </InputGroupAddon>
       <InputGroupAddon>
-        <Button @click="triggerSaveSkeleton" v-tooltip.bottom="'Save Skeleton JSON'">
+        <Button @click="triggerDownloadSkeleton" v-tooltip.bottom="'Save Skeleton JSON'">
           <i class="pi pi-download"></i>
         </Button>
       </InputGroupAddon>
@@ -345,12 +345,12 @@ onUnmounted(() => {
       </InputGroupAddon>
       <!-- 保存/关闭按钮 -->
       <InputGroupAddon>
-        <Button @click="closeDialog(true)" v-tooltip.bottom="'Save and Close'" severity="success">
+        <Button @click="handleDialogClose(true)" v-tooltip.bottom="'Save and Close'" severity="success">
           <i class="pi pi-check"></i>
         </Button>
       </InputGroupAddon>
       <InputGroupAddon>
-        <Button @click="closeDialog(false)" v-tooltip.bottom="'Close without Saving'" severity="danger">
+        <Button @click="handleDialogClose(false)" v-tooltip.bottom="'Close without Saving'" severity="danger">
           <i class="pi pi-times"></i>
         </Button>
       </InputGroupAddon>
@@ -358,7 +358,7 @@ onUnmounted(() => {
   </div>
 
   <div class="skeleton-container">
-    <v-stage :config="stageConfig" ref="stageRef" @mousedown="handleStagePress" @wheel="handleWheel">
+    <v-stage :config="stageConfig" ref="stageRef" @mousedown="handleStageMidDrag" @wheel="handleWheel">
       <v-layer>
         <v-rect :config="rectConfig"></v-rect>
       </v-layer>

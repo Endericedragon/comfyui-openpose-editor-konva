@@ -12,25 +12,10 @@ import torch
 THIS_NODE_DIR = pathlib.Path(__file__).parent
 
 
-def base64_to_image(base64_str: str) -> ImageFile:
-    """
-    将 Base64 图片字符串转换为 PIL ImageFile
-
-    Args:
-        base64_str: 包含图片数据的 Base64 字符串，带 data:image/xxx;base64, 前缀
-
-    Returns:
-        img: PIL ImageFile，RGB模式，值范围 0~255
-    """
-    # 1. 去除 data:image/xxx;base64, 前缀（如果存在）
-    if base64_str.startswith("data:image"):
-        base64_str = base64_str.split(",", 1)[-1]
-
-    # 2. Base64 解码为字节数据
-    image_bytes = base64.b64decode(base64_str)
-
-    # 3. 使用 PIL 打开图像
-    return Image.open(BytesIO(image_bytes))
+def use_routes() -> dict[str, str]:
+    with open(THIS_NODE_DIR / "src" / "routes.json", "r") as f:
+        routes = json.load(f)
+    return routes
 
 
 def image2tensor(img: ImageFile | Image.Image) -> torch.Tensor:
@@ -53,32 +38,30 @@ def image2tensor(img: ImageFile | Image.Image) -> torch.Tensor:
     return tensor
 
 
-def draw_pose(coco18_data: Coco18Data, skeleton_data: SkeletonData | None):
+def draw_pose_coco18_only(
+    canvas_width: int,
+    canvas_height: int,
+    coco18_data: Coco18Data | None,
+) -> Image.Image:
     """
-    接受默认的coco18数据，以及被用户修改过的skeleton数据，以重现前端的骨骼图像
+    接受coco18数据，并返回一个 PIL ImageFile，RGB模式，值范围 0~255
 
     Args:
-        coco18_data: 默认的 coco18 数据，从本地读取即可
-        skeleton_data: 被用户修改的骨骼数据，需从远端取回字符串并解析
+        width: 期望图像的宽度
+        height: 期望图像的高度
+        coco18_data: coco18 数据，若无则本地读取
 
     Returns:
         img: PIL ImageFile，RGB模式，值范围 0~255
     """
-    # 设置缩放比例以实现近似抗锯齿
+    if coco18_data is None:
+        coco18_data = load_default_coco18()
+    # 0. 缩放比例以实现近似抗锯齿
     scale_by: int = 4
-    # 0. 更新coco18_data的关节位置
-    canvas_width = 512 * scale_by
-    canvas_height = 512 * scale_by
-    if skeleton_data:
-        pose_keypoints_2d = skeleton_data["people"][0]["pose_keypoints_2d"]
-        for i in range(0, len(pose_keypoints_2d), 3):
-            x, y = pose_keypoints_2d[i], pose_keypoints_2d[i + 1]
-            coco18_data["joints"][i // 3] = (x, y, coco18_data["joints"][i // 3][2])
-        canvas_width = skeleton_data["width"] * scale_by
-        canvas_height = skeleton_data["height"] * scale_by
     # 1. 空白画布
-    img = Image.new("RGB", (canvas_width, canvas_height))
+    img = Image.new("RGB", (canvas_width * scale_by, canvas_height * scale_by))
     draw = ImageDraw.Draw(img)
+    # 1.1 先画骨骼
     for bone in coco18_data["bones"]:
         from_joint, to_joint, color = bone
         x1, y1 = coco18_data["joints"][from_joint][:2]
@@ -88,6 +71,7 @@ def draw_pose(coco18_data: Coco18Data, skeleton_data: SkeletonData | None):
             fill=tuple(color),
             width=scale_by * 6,
         )
+    # 1.2 再画关节
     for joint in coco18_data["joints"]:
         x, y, color = joint
         draw.ellipse(
@@ -97,17 +81,38 @@ def draw_pose(coco18_data: Coco18Data, skeleton_data: SkeletonData | None):
             ],
             fill=tuple(color),
         )
-        # draw.text((x, y), str(joint[2]), fill=(255, 255, 255))
-    return img.resize(
-        (canvas_width // scale_by, canvas_height // scale_by), Image.Resampling.LANCZOS
+    return img.resize((canvas_width, canvas_height), Image.Resampling.LANCZOS)
+
+
+def draw_pose(skeleton_data: SkeletonData) -> Image.Image:
+    """
+    接受被用户修改过的skeleton数据，用它修正默认的coco18数据，以重现前端的骨骼图像
+
+    Args:
+        skeleton_data: 被用户修改的骨骼数据，需从远端取回字符串并解析
+
+    Returns:
+        img: PIL ImageFile，RGB模式，值范围 0~255
+    """
+    coco18_data = load_default_coco18()
+    # 0. 更新coco18_data的关节位置
+    pose_keypoints_2d = skeleton_data["people"][0]["pose_keypoints_2d"]
+    for i in range(0, len(pose_keypoints_2d), 3):
+        x, y = pose_keypoints_2d[i], pose_keypoints_2d[i + 1]
+        coco18_data["joints"][i // 3] = (x, y, coco18_data["joints"][i // 3][2])
+    # 1. 调用 draw_pose_coco18_only 函数
+    return draw_pose_coco18_only(
+        skeleton_data["width"], skeleton_data["height"], coco18_data
     )
+
 
 def load_default_coco18() -> Coco18Data:
     with open(THIS_NODE_DIR / "src" / "coco18_data.json", "r") as f:
         data: Coco18Data = json.load(f)
     return data
 
-def scale_default_skeleton(width: int, height: int) -> Coco18Data:
+
+def scale_default_coco18(width: int, height: int) -> Coco18Data:
     """
     缩放默认的 coco18 数据，以适应不同的宽度和高度
 
@@ -120,9 +125,11 @@ def scale_default_skeleton(width: int, height: int) -> Coco18Data:
     """
     data = load_default_coco18()
     scale_by: float = width / 480
+    # 先以(0, 0)为中心做放大
     for i in range(len(data["joints"])):
         bruh = data["joints"][i]
         data["joints"][i] = (bruh[0] * scale_by, bruh[1] * scale_by, bruh[2])
+    # 再分别以点1和点8为水平/竖直中点，调整到中心位置
     delta_x = data["joints"][1][0] - width // 2
     delta_y = data["joints"][8][1] - height // 2
     for i in range(len(data["joints"])):

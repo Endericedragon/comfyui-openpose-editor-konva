@@ -6,6 +6,8 @@ const cuWin = window as unknown as Window;
 const comfyApp = cuWin.comfyAPI.app.app;
 const utils = cuWin.comfyAPI.utils;
 
+import ROUTES from "./routes.json";
+
 
 async function postTextData(app: ComfyApp, route: string, text: string) {
     const resp = await app.api.fetchApi(route, {
@@ -35,4 +37,4 @@ const EMPTY_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYA
     "AAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZiS0dEAP8A/wD/oL2nkwAAAAlw" + 
     "SFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+oDDgIvDipUXqMAAAALSURBVAjXY2AAAgAABQAB4iYFmwAAAABJRU5ErkJggg==";
 
-export { postTextData, comfyApp, utils, EVENTS, EMPTY_BASE64 };
+export { postTextData, comfyApp, utils, EVENTS, EMPTY_BASE64, ROUTES };

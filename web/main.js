@@ -9654,6 +9654,9 @@ var Nr, Qr = (Nr = ((r2, e2) => {
   return r2;
 })({}, e$R), e(Nr, m({ components: { accordion: c$p, autocomplete: a$F, avatar: n$B, badge: d$v, blockui: o$1h, breadcrumb: t$D, button: e$Q, card: d$u, carousel: t$B, cascadeselect: f$8, checkbox: e$N, chip: s$8, colorpicker: s$7, confirmdialog: r$15, confirmpopup: a$A, contextmenu: c$k, datatable: k$2, dataview: c$i, datepicker: k$1, dialog: e$F, divider: t$w, dock: d$o, drawer: e$D, editor: l$a, fieldset: e$B, fileupload: i$j, floatlabel: d$k, galleria: l$9, iconfield: r$S, iftalabel: i$g, image: e$y, imagecompare: r$Q, inlinemessage: a$q, inplace: n$q, inputchips: f$4, inputgroup: o$O, inputnumber: a$p, inputotp: e$v, inputtext: d$h, knob: c$f, listbox: n$o, megamenu: g$1, menu: r$G, menubar: e$s, message: u$3, metergroup: b$2, multiselect: n$j, orderlist: o$D, organizationchart: n$i, overlaybadge: t$j, paginator: n$h, panel: a$h, panelmenu: a$g, password: n$e, picklist: o$w, popover: e$k, progressbar: t$f, progressspinner: r$s, radiobutton: e$i, rating: i$8, ripple: o$q, scrollpanel: a$d, select: n$d, selectbutton: d$9, skeleton: o$m, slider: a$a, speeddial: a$9, splitbutton: d$8, splitter: t$c, stepper: i$6, steps: c$9, tabmenu: n$8, tabs: i$5, tabview: e$b, tag: n$5, terminal: e$a, textarea: d$5, tieredmenu: c$5, timeline: d$4, toast: u$2, togglebutton: c$3, toggleswitch: c$2, toolbar: r$5, tooltip: e$5, tree: d$2, treeselect: a$2, treetable: k, virtualscroller: e$1 } })));
 var t = (...t2) => ke(...t2);
+const ROUTES = {
+  "send-skeleton-json-to-backend": "/oe-konva/send-skeleton-json-to-backend"
+};
 const cuWin = window;
 const comfyApp = cuWin.comfyAPI.app.app;
 const utils = cuWin.comfyAPI.utils;
@@ -25079,14 +25082,14 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
       joints2.value[targetId].x = targetX;
       joints2.value[targetId].y = targetY;
     }
-    function closeDialog(doSave) {
+    function handleDialogClose(doSave) {
       var _a3;
       const ss = new StageStatus(bgOpacity.value, bgConfig.value.image.src, joints2.value);
       if (!ss) {
         return;
       }
       if (doSave) {
-        handleSaveSkeleton();
+        handleSendSkeleton();
         emits("afterClose", ss);
       }
       (_a3 = props.closeCallback) == null ? void 0 : _a3.call(props);
@@ -25105,7 +25108,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
       });
       currentStageScale.value = 1;
     }
-    function handleStagePress(e2) {
+    function handleStageMidDrag(e2) {
       var _a3, _b2;
       const mouseKey = e2.evt.button;
       if (mouseKey === 1) {
@@ -25147,10 +25150,10 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
       });
       currentStageScale.value = newScale;
     }
-    function handleSaveSkeleton() {
+    function handleSendSkeleton() {
       const serializedJoints = SerializedJoints.fromJoints(joints2.value, stageWidth, stageHeight);
       const jsonStr = serializedJoints.serialize();
-      postTextData(comfyApp, "/oe-konva/skeletonJson", jsonStr);
+      postTextData(comfyApp, ROUTES["send-skeleton-json-to-backend"], jsonStr);
     }
     const fileInputRef = ref();
     function triggerLoadImg() {
@@ -25186,7 +25189,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
       }
       input.value = "";
     }
-    function handleLoadImg(e2) {
+    function handleLoadBg(e2) {
       uploadFileInEvent(e2, "image/", false, (base64str) => {
         imgTag.src = base64str;
       });
@@ -25213,7 +25216,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
         joints2.value = uploadedInfo.toJoints();
       });
     }
-    function triggerSaveSkeleton() {
+    function triggerDownloadSkeleton() {
       const serializedJoints = SerializedJoints.fromJoints(joints2.value, stageWidth, stageHeight);
       const jsonStr = serializedJoints.serialize();
       const blob = new Blob([jsonStr], { type: "application/json" });
@@ -25248,7 +25251,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
             ref_key: "fileInputRef",
             ref: fileInputRef,
             accept: "image/*",
-            onChange: handleLoadImg
+            onChange: handleLoadBg
           }, null, 544),
           createBaseVNode("input", {
             type: "file",
@@ -25281,7 +25284,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
               }),
               createVNode(unref(script$2), null, {
                 default: withCtx(() => [
-                  withDirectives((openBlock(), createBlock(unref(script$8), { onClick: triggerSaveSkeleton }, {
+                  withDirectives((openBlock(), createBlock(unref(script$8), { onClick: triggerDownloadSkeleton }, {
                     default: withCtx(() => [..._cache[4] || (_cache[4] = [
                       createBaseVNode("i", { class: "pi pi-download" }, null, -1)
                     ])]),
@@ -25390,7 +25393,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
               createVNode(unref(script$2), null, {
                 default: withCtx(() => [
                   withDirectives((openBlock(), createBlock(unref(script$8), {
-                    onClick: _cache[1] || (_cache[1] = ($event) => closeDialog(true)),
+                    onClick: _cache[1] || (_cache[1] = ($event) => handleDialogClose(true)),
                     severity: "success"
                   }, {
                     default: withCtx(() => [..._cache[9] || (_cache[9] = [
@@ -25411,7 +25414,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
               createVNode(unref(script$2), null, {
                 default: withCtx(() => [
                   withDirectives((openBlock(), createBlock(unref(script$8), {
-                    onClick: _cache[2] || (_cache[2] = ($event) => closeDialog(false)),
+                    onClick: _cache[2] || (_cache[2] = ($event) => handleDialogClose(false)),
                     severity: "danger"
                   }, {
                     default: withCtx(() => [..._cache[10] || (_cache[10] = [
@@ -25438,7 +25441,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
             config: stageConfig.value,
             ref_key: "stageRef",
             ref: stageRef,
-            onMousedown: handleStagePress,
+            onMousedown: handleStageMidDrag,
             onWheel: handleWheel
           }, {
             default: withCtx(() => [
@@ -25505,7 +25508,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-4a876846"]]);
+const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-44ae6672"]]);
 const _sfc_main = /* @__PURE__ */ defineComponent({
   __name: "App",
   setup(__props) {
@@ -25588,6 +25591,15 @@ comfyApp.registerExtension({
     }
   },
   async setup() {
+    comfyApp.api.addEventListener("using-default", (e2) => {
+      console.log(e2);
+      comfyApp.extensionManager.toast.add({
+        severity: "warn",
+        summary: "Using Default",
+        detail: "Using default skeleton. Please save your work before closing the editor.",
+        life: 3e3
+      });
+    });
     let mountPoint = document.createElement("div");
     mountPoint.id = "oe-konva-ui";
     document.body.appendChild(mountPoint);
