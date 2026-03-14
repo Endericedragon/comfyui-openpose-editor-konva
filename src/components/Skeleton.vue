@@ -241,6 +241,9 @@ function uploadFileInEvent(
   }
   input.value = "";
 }
+/**
+ * 用上传的图片替换当前背景
+ */
 function handleLoadImg(e: Event) {
   uploadFileInEvent(e, "image/", false, (base64str) => {
     imgTag.src = base64str;
@@ -255,6 +258,9 @@ const jsonInputRef = ref<HTMLInputElement>();
 function triggerLoadSkeleton() {
   jsonInputRef.value?.click();
 }
+/**
+ * 加载上传的骨骼图JSON文件
+ */
 function handleLoadSkeleton(e: Event) {
   uploadFileInEvent(e, "application/json", true, (result) => {
     const uploadedInfo = SerializedJoints.deserialize(result);
@@ -269,7 +275,9 @@ function handleLoadSkeleton(e: Event) {
     joints.value = uploadedInfo.toJoints();
   });
 }
-// 下载骨骼JSON文件
+/** 
+ * 下载骨骼JSON文件
+ */
 function triggerSaveSkeleton() {
   // 创建blob对象
   const serializedJoints = SerializedJoints.fromJoints(joints.value, stageWidth, stageHeight);
