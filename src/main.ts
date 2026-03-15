@@ -5,15 +5,12 @@ import PrimeVue from "primevue/config";
 import Tooltip from 'primevue/tooltip';
 import Aura from '@primeuix/themes/aura';
 import { definePreset } from "@primeuix/themes"
-
 // shared data types
 import { comfyApp, utils, EVENTS } from "./constants.js";
 import App from "./App.vue"
-
 // extensions/comfyui-openpose-editor-konva是固定的，后续内容和/web目录有关
 const CSS_PATH = "extensions/comfyui-openpose-editor-konva/assets/style.css";
 utils.addStylesheet(CSS_PATH);
-
 // Copied from comfy-frontend-package
 const ComfyUIPreset = definePreset(Aura, {
     semantic: {
@@ -23,38 +20,20 @@ const ComfyUIPreset = definePreset(Aura, {
 
 comfyApp.registerExtension({
     name: "endericedragon.comfyui-openpose-editor-konva",
-    settings: [
-        {
-            id: "OptionName",
-            name: "Save after closing the markdown editor?",
-            type: "boolean",
-            defaultValue: false
-        }
-    ],
-    getNodeMenuItems(node) {
-        // 每次点击右键都会触发这个回调函数
-        const nodeTypeStr = node.type;
-        const widgets = node.widgets;
-        const widthWidget = widgets?.find(w => w.name.toLowerCase() === "width");
-        const heightWidget = widgets?.find(w => w.name.toLowerCase() === "height");
-
-        if (nodeTypeStr === "OpenPoseEditorKonva Controller") {
-            return [
-                {
-                    content: "Show OpenPose Editor (Konva)",
-                    callback: () => {
-                        // 触发自定义事件，展示编辑器窗口
-                        window.dispatchEvent(new CustomEvent(EVENTS.showEditor, {
-                            detail: {
-                                width: widthWidget?.value,
-                                height: heightWidget?.value,
-                            }
-                        }));
+    async nodeCreated(node, _app) {
+        if (node.comfyClass === "OpenPoseEditorKonva Controller") {
+            const widgets = node.widgets;
+            const widthWidget = widgets?.find(w => w.name.toLowerCase() === "width");
+            const heightWidget = widgets?.find(w => w.name.toLowerCase() === "height");
+            // 加个按钮替代右键菜单吧
+            node.addWidget("button", "Open Editor", null, () => {
+                window.dispatchEvent(new CustomEvent(EVENTS.showEditor, {
+                    detail: {
+                        width: widthWidget?.value,
+                        height: heightWidget?.value,
                     }
-                }
-            ];
-        } else {
-            return [];
+                }));
+            });
         }
     },
     async setup() {

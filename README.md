@@ -5,9 +5,9 @@
 ### 怎么用？- How to use this node?
 
 1. 搜索`OpenPoseEditorKonva Controller`节点，并将其添加到您的工作流。Search for `OpenPoseEditorKonva Controller` node, and add it to your workflow.
-2. 在其上右键，点击`Show OpenPose Editor (Konva)`选项。Right click on that node and click `Show OpenPose Editor (Konva)`.
+2. 点击节点上的`Open Editor`按钮。Click the `Open Editor` button on the node.
 
-   ![image-20260314225212308](./README.assets/image-20260314225212308.png)
+   ![image-20260315144547423](./README.assets/image-20260315144547423.png)
 
 3. 编辑器将会出现，您可拖动关节点调整骨骼姿势。鼠标滚轮可缩放画面，鼠标中键拖动可拖动画布。The editor would appear, and you could adjust the gesture of the skeleton by dragging those colored joints. Notice that you could also scroll to zoom it / out, and drag with the middle mouse button to move the canvas.
 
@@ -62,6 +62,8 @@ comfy node scaffold
 
 ### 编写前端
 
+#### 和普通Vue 3项目的区别
+
 编写前端的办法基本上和普通的Vue项目没差，但最终装载 Vue 组件的TS代码有差异，本仓库的这部分代码有如下注意点：
 
 ```typescript
@@ -95,27 +97,62 @@ comfyApp.registerExtension({
 
 > 添加CSS的方法，就是 `utils.addStylesheet` 函数；其用法和参数在注释里写得很清楚了。
 
+#### 注册右键菜单
+
 注册右键菜单的方法如下：
 
 ```typescript
 comfyApp.registerExtension({
-    name: "endericedragon.mdnotes",
     async getNodeMenuItems(node) {
-        // 每次点击右键都会触发这个回调函数
-        return [
-            {
-              content: "Show Editor (or anything else)",
-              callback: () => {
-                  // do something
-              }
-          },
-          null, // divider
-        ]
+        // 在所有节点上点击右键都会触发这个回调函数
+        // 因此需要根据node.comfyClass做判断
+        if (node.comfyClass === "...") {
+            return [
+                {
+                  content: "Show Editor (or anything else)",
+                  callback: () => {
+                      // do something
+                  }
+              },
+              null, // divider
+            ]
+        } else {
+            return []; // do nothing
+        }
     }
 });
 ```
 
-此外，为了实现灵活的信息传递，本项目大量使用事件监听器实现跨组件通信，如下：
+#### 添加简单小组件
+
+节点上的组件不仅可以在Python代码中定义，也可以在前端部分手动添加。
+
+```ts
+comfyApp.registerExtension({
+    async nodeCreated(node, app) {
+        // 在创建任意节点时都会触发这个回调函数
+        // 因此需要根据node.comfyClass做判断
+        if (node.comfyClass === "...") {
+            // 加个按钮替代右键菜单吧
+            // 参数分别为：type, name, value, callback以及可选的options
+            node.addWidget("button", "Open Editor", null, () => {
+                window.dispatchEvent(new CustomEvent(EVENTS.showEditor, {
+                    detail: {
+                        width: widthWidget?.value,
+                        height: heightWidget?.value,
+                    }
+                }));
+            });
+        }
+    },
+});
+```
+
+
+
+#### 前端内部的消息传递
+
+此外，为了实现灵活的信息传递，本项目大量使用事件监听器实现跨组件通信，这些监听器将在`onMounted`/`onUnmounted`钩子中创建/销毁。
 
 ```typescript
 window.addEventListener("event-id", e => {
@@ -136,9 +173,11 @@ window.dispatchEvent(
 
 ### 编写后端
 
-本仓库的后端全部写在 `__init__.py` 中，具体编写方法较为简单，自行查阅即可。此处仅介绍一下前后端通信（确切地说是前发后收）的写法。
+本仓库的后端主要写在 `__init__.py` 中，具体编写方法较为简单，自行查阅即可。
 
-从前端发送消息到后端比较简单。本仓库已经将这个过程封装到 `constants.ts` 的 `postJsonData` 函数中，观察其实现不难发现，就是对ComfyUI的 `app.api.fetchApi` 函数的封装：
+#### 消息流转：前发后收
+
+以笔者之前编写的 `postJsonData` 函数为例，不难发现它就是对ComfyUI的 `app.api.fetchApi` 函数的封装：
 
 ```ts
 import type { ComfyApp } from '@comfyorg/comfyui-frontend-types'
@@ -150,6 +189,8 @@ async function postJsonData(app: ComfyApp, route: string, data: any) {
         body: JSON.stringify(data)
     }).then(res => res.json());
 }
+
+await postJsonData(app, "/path/to/sth", {"k1": v1, "k2": v2, ...});
 ```
 
 后端通过给 `server.PromptServer` 配置路由来接收前端的消息：
@@ -162,3 +203,28 @@ async def do_sth(request: web.Request):
     # -- snip --
     return web.json_response({"status": "ok"}, status=200)
 ```
+
+#### 消息流转：后发前收 + Comfy Toast通知系统
+
+本仓库中使用同步写法。后端编写如下：
+
+```python
+PromptServer.instance.send_sync(
+    "event-id", {"k1": v1, "k2": v2, ...}
+)
+```
+
+前端是个注册在`app.api`上的事件监听器：
+
+```ts
+comfyApp.api.addEventListener("event-id", (e) => {
+    comfyApp.extensionManager.toast.add({
+        severity: "warn",
+        summary: "<Title of the event>",
+        detail: "<Detail message of the event>",
+        life: 3000
+    })
+});
+```
+
+这里刚好也涉及了Comfy Toast通知系统的使用方式。

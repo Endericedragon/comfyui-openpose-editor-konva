@@ -25578,35 +25578,19 @@ const ComfyUIPreset = t(Qr, {
 });
 comfyApp.registerExtension({
   name: "endericedragon.comfyui-openpose-editor-konva",
-  settings: [
-    {
-      id: "OptionName",
-      name: "Save after closing the markdown editor?",
-      type: "boolean",
-      defaultValue: false
-    }
-  ],
-  getNodeMenuItems(node) {
-    const nodeTypeStr = node.type;
-    const widgets = node.widgets;
-    const widthWidget = widgets == null ? void 0 : widgets.find((w2) => w2.name.toLowerCase() === "width");
-    const heightWidget = widgets == null ? void 0 : widgets.find((w2) => w2.name.toLowerCase() === "height");
-    if (nodeTypeStr === "OpenPoseEditorKonva Controller") {
-      return [
-        {
-          content: "Show OpenPose Editor (Konva)",
-          callback: () => {
-            window.dispatchEvent(new CustomEvent(EVENTS$1.showEditor, {
-              detail: {
-                width: widthWidget == null ? void 0 : widthWidget.value,
-                height: heightWidget == null ? void 0 : heightWidget.value
-              }
-            }));
+  async nodeCreated(node, _app) {
+    if (node.comfyClass === "OpenPoseEditorKonva Controller") {
+      const widgets = node.widgets;
+      const widthWidget = widgets == null ? void 0 : widgets.find((w2) => w2.name.toLowerCase() === "width");
+      const heightWidget = widgets == null ? void 0 : widgets.find((w2) => w2.name.toLowerCase() === "height");
+      node.addWidget("button", "Open Editor", null, () => {
+        window.dispatchEvent(new CustomEvent(EVENTS$1.showEditor, {
+          detail: {
+            width: widthWidget == null ? void 0 : widthWidget.value,
+            height: heightWidget == null ? void 0 : heightWidget.value
           }
-        }
-      ];
-    } else {
-      return [];
+        }));
+      });
     }
   },
   async setup() {
