@@ -6,7 +6,6 @@ from .utils import (
     draw_pose,
     draw_pose_coco18_only,
     image2tensor,
-    load_default_coco18,
     pose_kp2json,
     scale_default_coco18,
     use_routes,
@@ -66,6 +65,7 @@ class EditorController:
                     image2tensor(draw_pose(skeleton_data)),
                     skeleton_json_str,
                 )
+            # todo: 需要清空记忆吗？现在看来不是很有必要
         # skeleton_json_str为空，或需要弃用记忆
         PromptServer.instance.send_sync(
             "using-default", {"width": width, "height": height}
