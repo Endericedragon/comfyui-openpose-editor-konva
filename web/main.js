@@ -9661,7 +9661,7 @@ const ROUTES = {
 const cuWin = window;
 const comfyApp = cuWin.comfyAPI.app.app;
 const utils = cuWin.comfyAPI.utils;
-async function postTextData(app, route, text) {
+async function postTextData(app, route, text, wantJson) {
   const resp = await app.api.fetchApi(route, {
     method: "POST",
     headers: { "Content-Type": "text/plain" },
@@ -9669,12 +9669,13 @@ async function postTextData(app, route, text) {
   });
   switch (resp.status) {
     case 200:
-      return resp.json();
+      return wantJson ? resp.json() : resp.text();
     default:
+      const errorMsg = await resp.json();
       comfyApp.extensionManager.toast.add({
         severity: "error",
         summary: "OE-Konva Error",
-        detail: `Status code = ${resp.status}`,
+        detail: `Status code = ${resp.status}, ${errorMsg.status}`,
         life: 3e3
       });
       return Promise.reject(resp.status);
@@ -25151,7 +25152,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     function handleSendSkeleton() {
       const serializedJoints = SerializedJoints.fromJoints(joints2.value, stageWidth, stageHeight);
       const jsonStr = serializedJoints.serialize();
-      postTextData(comfyApp, ROUTES["send-skeleton-json-to-backend"], jsonStr).then(
+      postTextData(comfyApp, ROUTES["send-skeleton-json-to-backend"], jsonStr, false).then(
         (_2) => {
           comfyApp.extensionManager.toast.add({
             severity: "success",
@@ -25163,11 +25164,10 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
       );
     }
     function tryLoadSkeletonFromBackend() {
-      postTextData(comfyApp, ROUTES["get-skeleton-json-from-backend"], "").then(
-        (jsonStr) => {
-          if (jsonStr) {
-            const bruh = JSON.parse(jsonStr);
-            const info = new SerializedJoints(bruh.width, bruh.height, bruh.people[0].pose_keypoints_2d);
+      postTextData(comfyApp, ROUTES["get-skeleton-json-from-backend"], "", true).then(
+        (jsonData) => {
+          if (jsonData) {
+            const info = new SerializedJoints(jsonData.width, jsonData.height, jsonData.people[0].pose_keypoints_2d);
             joints2.value = info.toJoints();
           }
         }
@@ -25527,7 +25527,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-1f7ddd27"]]);
+const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-1cb1f335"]]);
 const _sfc_main = /* @__PURE__ */ defineComponent({
   __name: "App",
   setup(__props) {

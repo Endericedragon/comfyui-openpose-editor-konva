@@ -74,7 +74,6 @@ imgTag.onload = _ => {
     y: stageHeight / imgTag.height
   };
 };
-
 /**
  * 处理关节移动，将关节的新位置传导回joints数组中。
  * bones会跟着变化的。
@@ -173,7 +172,7 @@ function handleSendSkeleton() {
   const serializedJoints = SerializedJoints.fromJoints(joints.value, stageWidth, stageHeight);
   const jsonStr = serializedJoints.serialize();
   // Send to backend
-  postTextData(comfyApp, ROUTES["send-skeleton-json-to-backend"], jsonStr).then(
+  postTextData(comfyApp, ROUTES["send-skeleton-json-to-backend"], jsonStr, false).then(
     (_) => {
       comfyApp.extensionManager.toast.add({
         severity: "success",
@@ -188,13 +187,13 @@ function handleSendSkeleton() {
  * 从后端加载骨骼图JSON
  */
 function tryLoadSkeletonFromBackend() {
-  postTextData(comfyApp, ROUTES["get-skeleton-json-from-backend"], "").then(
-    jsonStr => {
+  postTextData(comfyApp, ROUTES["get-skeleton-json-from-backend"], "", true).then(
+    jsonData => {
       // 由于postTextData只能传递字符串，所以需要解析两次，一次在这里，一次在SerializedJoints.deserialize中
-      // const info = SerializedJoints.deserialize(jsonData);
-      if (jsonStr) {
-        const bruh = JSON.parse(jsonStr)
-        const info = new SerializedJoints(bruh.width, bruh.height, bruh.people[0].pose_keypoints_2d);
+      if (jsonData) {
+        // const info = SerializedJoints.deserialize(jsonData);
+        // const bruh = JSON.parse(jsonStr)
+        const info = new SerializedJoints(jsonData.width, jsonData.height, jsonData.people[0].pose_keypoints_2d);
         joints.value = info.toJoints();
       }
     });

@@ -8,8 +8,7 @@ const utils = cuWin.comfyAPI.utils;
 
 import ROUTES from "./routes.json";
 
-
-async function postTextData(app: ComfyApp, route: string, text: string) {
+async function postTextData(app: ComfyApp, route: string, text: string, wantJson: boolean) {
     const resp = await app.api.fetchApi(route, {
         method: "POST",
         headers: { "Content-Type": "text/plain" },
@@ -17,12 +16,13 @@ async function postTextData(app: ComfyApp, route: string, text: string) {
     });
     switch (resp.status) {
         case 200:
-            return resp.json();
+            return wantJson ? resp.json() : resp.text();
         default:
+            const errorMsg = await resp.json();
             comfyApp.extensionManager.toast.add({
                 severity: "error",
                 summary: "OE-Konva Error",
-                detail: `Status code = ${resp.status}`,
+                detail: `Status code = ${resp.status}, ${errorMsg.status}`,
                 life: 3000
             });
             return Promise.reject(resp.status);
@@ -34,7 +34,7 @@ const EVENTS = {
 };
 
 const EMPTY_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IB2cksfw" +
-    "AAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZiS0dEAP8A/wD/oL2nkwAAAAlw" + 
+    "AAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZiS0dEAP8A/wD/oL2nkwAAAAlw" +
     "SFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+oDDgIvDipUXqMAAAALSURBVAjXY2AAAgAABQAB4iYFmwAAAABJRU5ErkJggg==";
 
 export { postTextData, comfyApp, utils, EVENTS, EMPTY_BASE64, ROUTES };

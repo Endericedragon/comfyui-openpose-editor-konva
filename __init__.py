@@ -60,20 +60,21 @@ class EditorController:
         global skeleton_json_str
         if skeleton_json_str:
             skeleton_data: SkeletonData = json.loads(skeleton_json_str)
-            return (
-                image2tensor(draw_pose(skeleton_data)),
-                skeleton_json_str,
-            )
-        else:
-            # 从未打开编辑器，返回默认情况
-            PromptServer.instance.send_sync(
-                "using-default", {"width": width, "height": height}
-            )
-            scaled_coco18 = scale_default_coco18(width, height)
-            default_img = draw_pose_coco18_only(width, height, scaled_coco18)
-            return image2tensor(default_img), json.dumps(
-                coco2skeleton(scaled_coco18, width, height)
-            )
+            # 实际上，若这里记忆的尺寸和前台传来的不一致，就需要弃用记忆
+            if skeleton_data["width"] == width and skeleton_data["height"] == height:
+                return (
+                    image2tensor(draw_pose(skeleton_data)),
+                    skeleton_json_str,
+                )
+        # skeleton_json_str为空，或需要弃用记忆
+        PromptServer.instance.send_sync(
+            "using-default", {"width": width, "height": height}
+        )
+        scaled_coco18 = scale_default_coco18(width, height)
+        default_img = draw_pose_coco18_only(width, height, scaled_coco18)
+        return image2tensor(default_img), json.dumps(
+            coco2skeleton(scaled_coco18, width, height)
+        )
 
     @classmethod
     def IS_CHANGED(cls, width: int, height: int):
@@ -112,7 +113,13 @@ async def get_skeleton_json(req: web.Request):
 @PromptServer.instance.routes.post(ROUTES["get-skeleton-json-from-backend"])
 async def send_skeleton_json(_: web.Request):
     global skeleton_json_str
-    return web.json_response(skeleton_json_str, status=200)
+    if skeleton_json_str:
+        obj = json.loads(skeleton_json_str)
+        return web.json_response(obj, status=200)
+    else:
+        return web.json_response(
+            {"status": "No skeleton json in the backend!"}, status=404
+        )
 
 
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "WEB_DIRECTORY"]

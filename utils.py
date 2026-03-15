@@ -58,6 +58,7 @@ def draw_pose_coco18_only(
         coco18_data = load_default_coco18()
     # 0. 缩放比例以实现近似抗锯齿
     scale_by: int = 4
+    scaled_than_512: float = min(canvas_width, canvas_height) / 512.0
     # 1. 空白画布
     img = Image.new("RGB", (canvas_width * scale_by, canvas_height * scale_by))
     draw = ImageDraw.Draw(img)
@@ -69,12 +70,12 @@ def draw_pose_coco18_only(
         draw.line(
             [(x1 * scale_by, y1 * scale_by), (x2 * scale_by, y2 * scale_by)],
             fill=tuple(color),
-            width=scale_by * 9,
+            width=round(scale_by * 6 * scaled_than_512),
         )
     # 1.2 再画关节
     for joint in coco18_data["joints"]:
         x, y, color = joint
-        r = 8
+        r = 4 * scaled_than_512
         draw.ellipse(
             [
                 ((x - r) * scale_by, (y - r) * scale_by),
