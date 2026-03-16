@@ -51,7 +51,11 @@ class SerializedJoints {
     }
 
     serialize() {
-        return JSON.stringify({
+        return JSON.stringify(this.toObj());
+    }
+
+    toObj() {
+        return {
             width: this.width,
             height: this.height,
             people: [
@@ -59,7 +63,7 @@ class SerializedJoints {
                     pose_keypoints_2d: this.pose
                 }
             ]
-        });
+        };
     }
 
     static deserialize(jsonStr: string): SerializedJoints {

@@ -21,7 +21,7 @@ import torch
 import uuid
 
 
-skeleton_json_str = ""
+skeleton_json: SkeletonData | None = None
 ROUTES = use_routes()
 
 
@@ -70,14 +70,13 @@ class EditorController:
     FUNCTION = "run"
 
     async def run(self, width: int, height: int, preview: bool):
-        global skeleton_json_str
-        if skeleton_json_str:
-            skeleton_data: SkeletonData = json.loads(skeleton_json_str)
+        global skeleton_json
+        if skeleton_json:
             # 实际上，若这里记忆的尺寸和前台传来的不一致，就需要弃用记忆
-            if skeleton_data["width"] == width and skeleton_data["height"] == height:
+            if skeleton_json["width"] == width and skeleton_json["height"] == height:
                 return (
-                    image2tensor(draw_pose(skeleton_data)),
-                    skeleton_json_str,
+                    image2tensor(draw_pose(skeleton_json)), # todo
+                    json.dumps(skeleton_json),
                 )
             # todo: 需要清空记忆吗？现在看来不是很有必要
         # skeleton_json_str为空，或需要弃用记忆
@@ -99,8 +98,8 @@ class EditorController:
 
     @classmethod
     def IS_CHANGED(cls, width: int, height: int, preview: bool):
-        global skeleton_json_str
-        return "{}({}*{})".format(skeleton_json_str, width, height)
+        global skeleton_json
+        return "{}({}*{})".format(str(skeleton_json), width, height)
 
 
 class PoseKeypoint2Json:
@@ -126,17 +125,16 @@ class PoseKeypoint2Json:
 
 @PromptServer.instance.routes.post(ROUTES["send-skeleton-json-to-backend"])
 async def get_skeleton_json(req: web.Request):
-    global skeleton_json_str
-    skeleton_json_str = await req.text()
+    global skeleton_json
+    skeleton_json = await req.json()
     return web.json_response({"status": "ok"}, status=200)
 
 
 @PromptServer.instance.routes.post(ROUTES["get-skeleton-json-from-backend"])
 async def send_skeleton_json(_: web.Request):
-    global skeleton_json_str
-    if skeleton_json_str:
-        obj = json.loads(skeleton_json_str)
-        return web.json_response(obj, status=200)
+    global skeleton_json
+    if skeleton_json:
+        return web.json_response(skeleton_json, status=200)
     else:
         return web.json_response(
             {"status": "No skeleton json in the backend!"}, status=404

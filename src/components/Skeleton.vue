@@ -4,7 +4,7 @@ import { Button, Slider, InputGroup, InputGroupAddon } from "primevue";
 import { ref, onMounted, onUnmounted } from "vue";
 import Konva from "konva";
 import { Stage as VStage, Layer as VLayer, Circle as VCircle, Line as VLine, Image as VImage, Rect as VRect } from 'vue-konva';
-import { setMousePattern, resetMousePattern, Joint, postTextData } from "@/myUtils";
+import { setMousePattern, resetMousePattern, Joint, postTextData, postJsonData } from "@/myUtils";
 import { StageStatus } from "@/statusCache";
 import { DEFAULT_JOINTS, DEFAULT_BONES, scaleJoints, SerializedJoints } from "@/defaultCoco18";
 import { comfyApp, EMPTY_BASE64, ROUTES } from "@/constants";
@@ -176,9 +176,9 @@ function handleWheel(e: Konva.KonvaEventObject<WheelEvent>) {
  */
 function handleSendSkeleton() {
   const serializedJoints = SerializedJoints.fromJoints(joints.value, stageWidth, stageHeight);
-  const jsonStr = serializedJoints.serialize();
+  const jsonObj = serializedJoints.toObj();
   // Send to backend
-  postTextData(comfyApp, ROUTES["send-skeleton-json-to-backend"], jsonStr, false).then(
+  postJsonData(comfyApp, ROUTES["send-skeleton-json-to-backend"], jsonObj, false).then(
     (_) => {
       comfyApp.extensionManager.toast.add({
         severity: "success",
@@ -197,8 +197,6 @@ function tryLoadSkeletonFromBackend() {
     jsonData => {
       // 由于postTextData只能传递字符串，所以需要解析两次，一次在这里，一次在SerializedJoints.deserialize中
       if (jsonData) {
-        // const info = SerializedJoints.deserialize(jsonData);
-        // const bruh = JSON.parse(jsonStr)
         const info = new SerializedJoints(jsonData.width, jsonData.height, jsonData.people[0].pose_keypoints_2d);
         joints.value = info.toJoints();
       }

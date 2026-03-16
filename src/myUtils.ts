@@ -65,4 +65,25 @@ async function postTextData(app: ComfyApp, route: string, text: string, wantJson
     }
 }
 
-export { Joint, Bone, setMousePattern, resetMousePattern, postTextData };
+async function postJsonData(app: ComfyApp, route: string, jsonObj: object, wantJson: boolean) {
+    const resp = await app.api.fetchApi(route, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(jsonObj)
+    });
+    switch (resp.status) {
+        case 200:
+            return wantJson ? resp.json() : resp.text();
+        default:
+            const errorMsg = await resp.json();
+            app.extensionManager.toast.add({
+                severity: "error",
+                summary: "OE-Konva Error",
+                detail: `Status code = ${resp.status}, ${errorMsg.status}`,
+                life: 3000
+            });
+            return Promise.reject(resp.status);
+    }
+}
+
+export { Joint, Bone, setMousePattern, resetMousePattern, postTextData, postJsonData };
