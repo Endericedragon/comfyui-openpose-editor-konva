@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.1.6] - 2026-03-17
+
+### Added
+
+Editor Controller节点上现在自带预览功能了，不用外挂Preview Image啦！
+
 ## [0.1.5] - 2026-03-16
 
 ### Added

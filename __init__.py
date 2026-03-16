@@ -1,4 +1,5 @@
 from aiohttp import web
+from PIL import Image
 from server import PromptServer
 from .utils import (
     SkeletonData,
@@ -11,8 +12,13 @@ from .utils import (
     use_routes,
 )
 
+import folder_paths
 import json
+import nodes
+import numpy as np
+import os
 import torch
+import uuid
 
 
 skeleton_json_str = ""
@@ -53,6 +59,7 @@ class EditorController:
 
     RETURN_TYPES = ("IMAGE", "STRING")
     RETURN_NAMES = ("COCO18 Image", "Skeleton JSON")
+    OUTPUT_NODE = True
     FUNCTION = "run"
 
     async def run(self, width: int, height: int):
@@ -72,9 +79,12 @@ class EditorController:
         )
         scaled_coco18 = scale_default_coco18(width, height)
         default_img = draw_pose_coco18_only(width, height, scaled_coco18)
-        return image2tensor(default_img), json.dumps(
+        # 保存到 ComfyUI temp 目录，以供前端显示预览图
+        res = nodes.PreviewImage().save_images(image2tensor(default_img))
+        res["result"] = image2tensor(default_img), json.dumps(  # type: ignore
             coco2skeleton(scaled_coco18, width, height)
         )
+        return res  # {"ui": {"images": [...]} "result": (image,)}
 
     @classmethod
     def IS_CHANGED(cls, width: int, height: int):
