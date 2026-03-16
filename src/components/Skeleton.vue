@@ -4,10 +4,10 @@ import { Button, Slider, InputGroup, InputGroupAddon } from "primevue";
 import { ref, onMounted, onUnmounted } from "vue";
 import Konva from "konva";
 import { Stage as VStage, Layer as VLayer, Circle as VCircle, Line as VLine, Image as VImage, Rect as VRect } from 'vue-konva';
-import { setMousePattern, resetMousePattern, Joint } from "@/myUtils";
+import { setMousePattern, resetMousePattern, Joint, postTextData } from "@/myUtils";
 import { StageStatus } from "@/statusCache";
 import { DEFAULT_JOINTS, DEFAULT_BONES, scaleJoints, SerializedJoints } from "@/defaultCoco18";
-import { comfyApp, EMPTY_BASE64, postTextData, ROUTES } from "@/constants";
+import { comfyApp, EMPTY_BASE64, ROUTES } from "@/constants";
 
 const emits = defineEmits(["afterClose"]);
 
@@ -40,13 +40,16 @@ const joints = ref<Joint[]>((() => {
 // 初始的骨头连接关系和颜色。均为定值。
 const bones = ref(DEFAULT_BONES);
 // 舞台的一些配置。
+// 从lastStageStatus中恢复舞台状态。
 const stageRef = ref<Konva.Stage>();
-const currentStageScale = ref(1.0);
+const currentStageScale = ref(props.lastStageStatus?.scale || 1.0);
 const stageConfig = ref({
   width: stageWidth,
   height: stageHeight,
   scaleX: currentStageScale,
   scaleY: currentStageScale,
+  x: props.lastStageStatus?.offsetX || 0,
+  y: props.lastStageStatus?.offsetY || 0,
 });
 // 背景图片和黑幕的配置。
 const rectConfig = ref({
@@ -56,7 +59,7 @@ const rectConfig = ref({
   stroke: "grey",
   strokeWidth: 4,
 });
-const showBackground = ref(true);
+// 背景图片及其透明度。同样尝试从lastStageStatus中恢复。
 const bgOpacity = ref(props.lastStageStatus?.opacity || 0.4);
 const imgTag = new Image();
 imgTag.src = props.lastStageStatus?.bgImgBase64 || EMPTY_BASE64;
@@ -90,11 +93,14 @@ function handleJointMove(e: Konva.KonvaEventObject<DragEvent>) {
  * 关闭窗口，可选择是否保存骨骼Json
  */
 function handleDialogClose(doSave: boolean) {
+  const stage = stageRef.value?.getStage();
+  if (!stage) { return; }
   // 保存舞台状态
-  const ss = new StageStatus(bgOpacity.value, bgConfig.value.image.src);
+  const ss = new StageStatus(bgOpacity.value, bgConfig.value.image.src, stage.x(), stage.y(), stage.scaleX());
   if (!ss) { return; }
   // 保存骨骼图JSON
   if (doSave) {
+    // 只在点击保存时才会记忆骨骼和舞台状态
     handleSendSkeleton();
     // 通知父组件更新状态
     emits("afterClose", ss);
@@ -297,6 +303,10 @@ function handleResetSkeleton() {
   joints.value = DEFAULT_JOINTS();
   scaleJoints(joints.value, stageWidth, stageHeight);
 }
+// function handleDebug() {
+//   const stage = stageRef.value.getStage();
+//   alert(`${stage.x()}, ${stage.y()}`);
+// }
 // 配置全局事件监听器，保证中键释放时关闭画布拖拽。
 const skeletonContainer = ref<Element>();
 onMounted(() => {
@@ -370,6 +380,11 @@ onUnmounted(() => {
           <i class="pi pi-times"></i>
         </Button>
       </InputGroupAddon>
+      <!-- <InputGroupAddon>
+        <Button @click="handleDebug" v-tooltip.bottom="'Show Debug info'" severity="success">
+          <i class="pi pi-bell"></i>
+        </Button>
+      </InputGroupAddon> -->
     </InputGroup>
   </div>
 
@@ -379,7 +394,7 @@ onUnmounted(() => {
         <v-rect :config="rectConfig"></v-rect>
       </v-layer>
       <v-layer>
-        <v-image :visible="showBackground" :config="bgConfig" />
+        <v-image :config="bgConfig" />
       </v-layer>
       <v-layer>
         <v-line v-for="(bone, idx) in bones" :key="'bone-' + idx" :config="{
