@@ -228,3 +228,18 @@ comfyApp.api.addEventListener("event-id", (e) => {
 ```
 
 这里刚好也涉及了Comfy Toast通知系统的使用方式。
+
+#### 在节点上预览图片
+
+虽然很反直觉，但是预览图片其实是在后端而非前端实现的，具体来说，节点的主方法不仅可以返回`Tuple[...]`，还可以返回`Dict`，结构类似下面这样（可以去`ComfyUI/nodes.py`中搜索`PreviewImage`参考一下官方的写法）：
+
+```python
+return {
+    "ui": {
+        "image": [...],
+    },
+    "result": (image,), # Tensor
+}
+```
+
+其中的`"ui"`字段又可以通过`nodes.PreviewImage().save_images(t: list[torch.Tensor])`方法来实现。

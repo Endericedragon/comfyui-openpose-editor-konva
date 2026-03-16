@@ -54,6 +54,13 @@ class EditorController:
                         "display": "Height",
                     },
                 ),
+                "preview": (
+                    "BOOLEAN",
+                    {
+                        "default": "true",
+                        "display": "Preview",
+                    },
+                ),
             }
         }
 
@@ -62,7 +69,7 @@ class EditorController:
     OUTPUT_NODE = True
     FUNCTION = "run"
 
-    async def run(self, width: int, height: int):
+    async def run(self, width: int, height: int, preview: bool):
         global skeleton_json_str
         if skeleton_json_str:
             skeleton_data: SkeletonData = json.loads(skeleton_json_str)
@@ -80,14 +87,18 @@ class EditorController:
         scaled_coco18 = scale_default_coco18(width, height)
         default_img = draw_pose_coco18_only(width, height, scaled_coco18)
         # 保存到 ComfyUI temp 目录，以供前端显示预览图
-        res = nodes.PreviewImage().save_images(image2tensor(default_img))
+        res = (
+            nodes.PreviewImage().save_images(image2tensor(default_img))
+            if preview
+            else dict()
+        )
         res["result"] = image2tensor(default_img), json.dumps(  # type: ignore
             coco2skeleton(scaled_coco18, width, height)
         )
         return res  # {"ui": {"images": [...]} "result": (image,)}
 
     @classmethod
-    def IS_CHANGED(cls, width: int, height: int):
+    def IS_CHANGED(cls, width: int, height: int, preview: bool):
         global skeleton_json_str
         return "{}({}*{})".format(skeleton_json_str, width, height)
 
