@@ -1,4 +1,4 @@
-import { Joint, Bone } from "@/myUtils"
+import { Joint, Bone, tryParseJson } from "@/myUtils"
 import coco18 from "./coco18_data.json"
 
 const DEFAULT_JOINTS = () => {
@@ -66,8 +66,11 @@ class SerializedJoints {
         };
     }
 
-    static deserialize(jsonStr: string): SerializedJoints {
-        let jsonData = JSON.parse(jsonStr);
+    static deserialize(jsonStr: string): SerializedJoints | null {
+        let jsonData = tryParseJson(jsonStr);
+        if (!jsonData) { 
+            return null;
+        }
         return new SerializedJoints(jsonData.width, jsonData.height, jsonData.people[0].pose_keypoints_2d);
     }
 }

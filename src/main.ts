@@ -7,6 +7,7 @@ import Aura from '@primeuix/themes/aura';
 import { definePreset } from "@primeuix/themes"
 // shared data types
 import { comfyApp, utils, EVENTS } from "./constants.js";
+import { tryParseJson } from "./myUtils.js";
 import App from "./App.vue"
 // extensions/comfyui-openpose-editor-konva是固定的，后续内容和/web目录有关
 const CSS_PATH = "extensions/comfyui-openpose-editor-konva/assets/style.css";
@@ -31,6 +32,7 @@ comfyApp.registerExtension({
             // @ts-ignore
             app.api.addEventListener("send-skeleton-json", (e) => {
                 // 收到skeleton_json_str后，更新widget的值
+                // 由于是后端发来的，所以一定合法
                 skeletonJsonWidget.value = JSON.stringify(e.detail);
             });
             // 加个按钮替代右键菜单吧

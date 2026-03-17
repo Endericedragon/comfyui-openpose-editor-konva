@@ -1,3 +1,5 @@
+import { comfyApp } from "./constants";
+
 function triple2ColorStr(tri: number[]): string {
     return `rgb(${tri.join(",")})`;
 }
@@ -41,5 +43,19 @@ function setMousePattern() {
 function resetMousePattern() {
     document.body.style.cursor = "default";
 }
+function tryParseJson(jsonStr: string) {
+    try {
+        return JSON.parse(jsonStr);
+    } catch (e) {
+        comfyApp.extensionManager.toast.add({
+            severity: "error",
+            summary: "Invalid JSON",
+            detail: "Check the console for detail",
+            life: 5000
+        });
+        console.error(e);
+        return null;
+    }
+}
 
-export { Joint, Bone, setMousePattern, resetMousePattern };
+export { Joint, Bone, setMousePattern, resetMousePattern, tryParseJson };

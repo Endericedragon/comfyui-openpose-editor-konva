@@ -24910,6 +24910,20 @@ function setMousePattern() {
 function resetMousePattern() {
   document.body.style.cursor = "default";
 }
+function tryParseJson(jsonStr) {
+  try {
+    return JSON.parse(jsonStr);
+  } catch (e2) {
+    comfyApp.extensionManager.toast.add({
+      severity: "error",
+      summary: "Invalid JSON",
+      detail: "Check the console for detail",
+      life: 5e3
+    });
+    console.error(e2);
+    return null;
+  }
+}
 class StageStatus {
   // 背景图片的缩放比例
   constructor(opacity, bgImgBase64, offsetX, offsetY, scale) {
@@ -24991,7 +25005,10 @@ class SerializedJoints {
     };
   }
   static deserialize(jsonStr) {
-    let jsonData = JSON.parse(jsonStr);
+    let jsonData = tryParseJson(jsonStr);
+    if (!jsonData) {
+      return null;
+    }
     return new SerializedJoints(jsonData.width, jsonData.height, jsonData.people[0].pose_keypoints_2d);
   }
 }
@@ -25152,18 +25169,12 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     }
     function tryLoadSkeletonFromWidget() {
       var _a3;
-      try {
-        const jsonStr = (_a3 = props.skeletonJsonWidget) == null ? void 0 : _a3.value;
-        const info = SerializedJoints.deserialize(jsonStr);
-        joints2.value = info.toJoints();
-      } catch (e2) {
-        comfyApp.extensionManager.toast.add({
-          severity: "error",
-          summary: "Failed to load skeleton JSON!",
-          detail: e2 instanceof Error ? e2.message : "Unknown error",
-          life: 5e3
-        });
+      const jsonStr = (_a3 = props.skeletonJsonWidget) == null ? void 0 : _a3.value;
+      const info = SerializedJoints.deserialize(jsonStr);
+      if (!info) {
+        return;
       }
+      joints2.value = info.toJoints();
     }
     const fileInputRef = ref();
     function triggerLoadImg() {
@@ -25215,7 +25226,9 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     function handleLoadSkeleton(e2) {
       uploadFileInEvent(e2, "application/json", true, (result) => {
         const uploadedInfo = SerializedJoints.deserialize(result);
-        if (uploadedInfo.width !== stageWidth || uploadedInfo.height !== stageHeight) {
+        if (!uploadedInfo) {
+          return;
+        } else if (uploadedInfo.width !== stageWidth || uploadedInfo.height !== stageHeight) {
           comfyApp.extensionManager.toast.add({
             severity: "warn",
             summary: "Size unmatched!",
@@ -25516,7 +25529,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-5a42ee15"]]);
+const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-dc33b82b"]]);
 const _sfc_main = /* @__PURE__ */ defineComponent({
   __name: "App",
   setup(__props) {

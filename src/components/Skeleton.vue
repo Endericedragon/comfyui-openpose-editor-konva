@@ -186,18 +186,12 @@ function handleSaveSkeleton() {
  * 从后端加载骨骼图JSON
  */
 function tryLoadSkeletonFromWidget() {
-  try {
-    const jsonStr = props.skeletonJsonWidget?.value;
-    const info = SerializedJoints.deserialize(jsonStr);
-    joints.value = info.toJoints();
-  } catch (e) {
-    comfyApp.extensionManager.toast.add({
-      severity: "error",
-      summary: "Failed to load skeleton JSON!",
-      detail: e instanceof Error ? e.message : "Unknown error",
-      life: 5000,
-    });
+  const jsonStr = props.skeletonJsonWidget?.value;
+  const info = SerializedJoints.deserialize(jsonStr);
+  if (!info) {
+    return;
   }
+  joints.value = info.toJoints();
 }
 /**
  * 加载背景图片
@@ -259,7 +253,9 @@ function triggerLoadSkeleton() {
 function handleLoadSkeleton(e: Event) {
   uploadFileInEvent(e, "application/json", true, (result) => {
     const uploadedInfo = SerializedJoints.deserialize(result);
-    if (uploadedInfo.width !== stageWidth || uploadedInfo.height !== stageHeight) {
+    if (!uploadedInfo) {
+      return;
+    } else if (uploadedInfo.width !== stageWidth || uploadedInfo.height !== stageHeight) {
       comfyApp.extensionManager.toast.add({
         severity: "warn",
         summary: "Size unmatched!",
@@ -298,10 +294,6 @@ function handleResetSkeleton() {
   joints.value = DEFAULT_JOINTS();
   scaleJoints(joints.value, stageWidth, stageHeight);
 }
-// function handleDebug() {
-//   const stage = stageRef.value.getStage();
-//   alert(`${stage.x()}, ${stage.y()}`);
-// }
 // 配置全局事件监听器，保证中键释放时关闭画布拖拽。
 const skeletonContainer = ref<Element>();
 onMounted(() => {
