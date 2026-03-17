@@ -1,5 +1,4 @@
 from aiohttp import web
-from PIL import Image
 from server import PromptServer
 from .utils import (
     SkeletonData,
@@ -12,13 +11,9 @@ from .utils import (
     use_routes,
 )
 
-import folder_paths
 import json
 import nodes
-import numpy as np
-import os
 import torch
-import uuid
 
 
 skeleton_json: SkeletonData | None = None
@@ -54,22 +49,19 @@ class EditorController:
                         "display": "Height",
                     },
                 ),
-                "preview": (
-                    "BOOLEAN",
-                    {
-                        "default": "true",
-                        "display": "Preview",
-                    },
+                "skeleton_json_str": (
+                    "STRING",
+                    {"display": "Skeleton JSON", "multiline": True},
                 ),
             }
         }
 
-    RETURN_TYPES = ("IMAGE", "STRING")
-    RETURN_NAMES = ("COCO18 Image", "Skeleton JSON")
+    RETURN_TYPES = ("IMAGE", "STRING", "STRING")
+    RETURN_NAMES = ("COCO18 Image", "Skeleton JSON", "Test Output")
     OUTPUT_NODE = True
     FUNCTION = "run"
 
-    async def run(self, width: int, height: int, preview: bool):
+    async def run(self, width: int, height: int, skeleton_json_str: str):
         global skeleton_json
         if (
             skeleton_json
@@ -89,14 +81,14 @@ class EditorController:
             img_tensor = image2tensor(default_img)
             skeleton_json = coco2skeleton(scaled_coco18, width, height)
         # 保存到 ComfyUI temp 目录，以供前端显示预览图
-        res = nodes.PreviewImage().save_images(img_tensor) if preview else dict()
-        res["result"] = img_tensor, json.dumps(skeleton_json)  # type: ignore
+        res = nodes.PreviewImage().save_images(img_tensor)
+        res["result"] = img_tensor, json.dumps(skeleton_json), skeleton_json_str  # type: ignore
         return res  # {"ui": {"images": [...]} "result": (image,)}
 
     @classmethod
-    def IS_CHANGED(cls, width: int, height: int, preview: bool):
+    def IS_CHANGED(cls, width: int, height: int, skeleton_json_str: str):
         global skeleton_json
-        return "{}({}*{})".format(str(skeleton_json), width, height)
+        return "{}{}{}{}".format(str(skeleton_json), width, height, skeleton_json_str)
 
 
 class PoseKeypoint2Json:

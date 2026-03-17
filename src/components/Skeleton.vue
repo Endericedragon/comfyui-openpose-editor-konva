@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import 'primeicons/primeicons.css';
 import { Button, Slider, InputGroup, InputGroupAddon } from "primevue";
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, Ref } from "vue";
 import Konva from "konva";
 import { Stage as VStage, Layer as VLayer, Circle as VCircle, Line as VLine, Image as VImage, Rect as VRect } from 'vue-konva';
 import { setMousePattern, resetMousePattern, Joint, postTextData, postJsonData } from "@/myUtils";
@@ -27,6 +27,9 @@ const props = defineProps({
   },
   lastStageStatus: {
     type: StageStatus,
+  },
+  skeletonJsonWidget: {
+    type: HTMLTextAreaElement,
   }
 });
 const [stageWidth, stageHeight] = [props.width, props.height];
@@ -176,6 +179,8 @@ function handleWheel(e: Konva.KonvaEventObject<WheelEvent>) {
  */
 function handleSendSkeleton() {
   const serializedJoints = SerializedJoints.fromJoints(joints.value, stageWidth, stageHeight);
+  const jsonStr = serializedJoints.serialize();
+  props.skeletonJsonWidget.value = jsonStr;
   const jsonObj = serializedJoints.toObj();
   // Send to backend
   postJsonData(comfyApp, ROUTES["send-skeleton-json-to-backend"], jsonObj, false).then(

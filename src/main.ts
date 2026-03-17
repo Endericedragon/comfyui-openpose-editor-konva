@@ -25,12 +25,15 @@ comfyApp.registerExtension({
             const widgets = node.widgets;
             const widthWidget = widgets?.find(w => w.name.toLowerCase() === "width");
             const heightWidget = widgets?.find(w => w.name.toLowerCase() === "height");
+            const skeletonJsonWidget = widgets?.find(w => w.name.toLowerCase() === "skeleton_json_str");
+            skeletonJsonWidget.hidden = true;
             // 加个按钮替代右键菜单吧
             node.addWidget("button", "Open Editor", null, () => {
                 window.dispatchEvent(new CustomEvent(EVENTS.showEditor, {
                     detail: {
                         width: widthWidget?.value,
                         height: heightWidget?.value,
+                        jsonWidget: skeletonJsonWidget,
                     }
                 }));
             });
