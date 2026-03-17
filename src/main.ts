@@ -20,13 +20,19 @@ const ComfyUIPreset = definePreset(Aura, {
 
 comfyApp.registerExtension({
     name: "endericedragon.comfyui-openpose-editor-konva",
-    async nodeCreated(node, _app) {
+    async nodeCreated(node, app) {
         if (node.comfyClass === "OpenPoseEditorKonva Controller") {
             const widgets = node.widgets;
             const widthWidget = widgets?.find(w => w.name.toLowerCase() === "width");
             const heightWidget = widgets?.find(w => w.name.toLowerCase() === "height");
+            // 隐藏skeleton_json_str，因为它是用来传输数据的，前端不需要它
             const skeletonJsonWidget = widgets?.find(w => w.name.toLowerCase() === "skeleton_json_str");
             skeletonJsonWidget.hidden = true;
+            // @ts-ignore
+            app.api.addEventListener("send-skeleton-json", (e) => {
+                // 收到skeleton_json_str后，更新widget的值
+                skeletonJsonWidget.value = JSON.stringify(e.detail);
+            });
             // 加个按钮替代右键菜单吧
             node.addWidget("button", "Open Editor", null, () => {
                 window.dispatchEvent(new CustomEvent(EVENTS.showEditor, {
@@ -40,15 +46,6 @@ comfyApp.registerExtension({
         }
     },
     async setup() {
-        // @ts-ignore: Why?
-        comfyApp.api.addEventListener("using-default", (e) => {
-            comfyApp.extensionManager.toast.add({
-                severity: "warn",
-                summary: "Using Default",
-                detail: "Using default skeleton. Please save your work before closing the editor.",
-                life: 3000
-            })
-        });
         let mountPoint = document.createElement("div");
         mountPoint.id = "oe-konva-ui";
         document.body.appendChild(mountPoint);

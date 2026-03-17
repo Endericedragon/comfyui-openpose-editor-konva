@@ -9654,10 +9654,6 @@ var Nr, Qr = (Nr = ((r2, e2) => {
   return r2;
 })({}, e$R), e(Nr, m({ components: { accordion: c$p, autocomplete: a$F, avatar: n$B, badge: d$v, blockui: o$1h, breadcrumb: t$D, button: e$Q, card: d$u, carousel: t$B, cascadeselect: f$8, checkbox: e$N, chip: s$8, colorpicker: s$7, confirmdialog: r$15, confirmpopup: a$A, contextmenu: c$k, datatable: k$2, dataview: c$i, datepicker: k$1, dialog: e$F, divider: t$w, dock: d$o, drawer: e$D, editor: l$a, fieldset: e$B, fileupload: i$j, floatlabel: d$k, galleria: l$9, iconfield: r$S, iftalabel: i$g, image: e$y, imagecompare: r$Q, inlinemessage: a$q, inplace: n$q, inputchips: f$4, inputgroup: o$O, inputnumber: a$p, inputotp: e$v, inputtext: d$h, knob: c$f, listbox: n$o, megamenu: g$1, menu: r$G, menubar: e$s, message: u$3, metergroup: b$2, multiselect: n$j, orderlist: o$D, organizationchart: n$i, overlaybadge: t$j, paginator: n$h, panel: a$h, panelmenu: a$g, password: n$e, picklist: o$w, popover: e$k, progressbar: t$f, progressspinner: r$s, radiobutton: e$i, rating: i$8, ripple: o$q, scrollpanel: a$d, select: n$d, selectbutton: d$9, skeleton: o$m, slider: a$a, speeddial: a$9, splitbutton: d$8, splitter: t$c, stepper: i$6, steps: c$9, tabmenu: n$8, tabs: i$5, tabview: e$b, tag: n$5, terminal: e$a, textarea: d$5, tieredmenu: c$5, timeline: d$4, toast: u$2, togglebutton: c$3, toggleswitch: c$2, toolbar: r$5, tooltip: e$5, tree: d$2, treeselect: a$2, treetable: k, virtualscroller: e$1 } })));
 var t = (...t2) => ke(...t2);
-const ROUTES = {
-  "send-skeleton-json-to-backend": "/oe-konva/send-skeleton-json-to-backend",
-  "get-skeleton-json-from-backend": "/oe-konva/get-skeleton-json-from-backend"
-};
 const cuWin = window;
 const comfyApp = cuWin.comfyAPI.app.app;
 const utils = cuWin.comfyAPI.utils;
@@ -24914,46 +24910,6 @@ function setMousePattern() {
 function resetMousePattern() {
   document.body.style.cursor = "default";
 }
-async function postTextData(app, route, text, wantJson) {
-  const resp = await app.api.fetchApi(route, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain" },
-    body: text
-  });
-  switch (resp.status) {
-    case 200:
-      return wantJson ? resp.json() : resp.text();
-    default:
-      const errorMsg = await resp.json();
-      app.extensionManager.toast.add({
-        severity: "error",
-        summary: "OE-Konva Error",
-        detail: `Status code = ${resp.status}, ${errorMsg.status}`,
-        life: 3e3
-      });
-      return Promise.reject(resp.status);
-  }
-}
-async function postJsonData(app, route, jsonObj, wantJson) {
-  const resp = await app.api.fetchApi(route, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(jsonObj)
-  });
-  switch (resp.status) {
-    case 200:
-      return wantJson ? resp.json() : resp.text();
-    default:
-      const errorMsg = await resp.json();
-      app.extensionManager.toast.add({
-        severity: "error",
-        summary: "OE-Konva Error",
-        detail: `Status code = ${resp.status}, ${errorMsg.status}`,
-        life: 3e3
-      });
-      return Promise.reject(resp.status);
-  }
-}
 class StageStatus {
   // 背景图片的缩放比例
   constructor(opacity, bgImgBase64, offsetX, offsetY, scale) {
@@ -25128,7 +25084,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
         return;
       }
       if (doSave) {
-        handleSendSkeleton();
+        handleSaveSkeleton();
         emits("afterClose", ss);
       }
       (_b2 = props.closeCallback) == null ? void 0 : _b2.call(props);
@@ -25189,31 +25145,25 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
       });
       currentStageScale.value = newScale;
     }
-    function handleSendSkeleton() {
+    function handleSaveSkeleton() {
       const serializedJoints = SerializedJoints.fromJoints(joints2.value, stageWidth, stageHeight);
       const jsonStr = serializedJoints.serialize();
       props.skeletonJsonWidget.value = jsonStr;
-      const jsonObj = serializedJoints.toObj();
-      postJsonData(comfyApp, ROUTES["send-skeleton-json-to-backend"], jsonObj, false).then(
-        (_2) => {
-          comfyApp.extensionManager.toast.add({
-            severity: "success",
-            summary: "OE-Konva Success",
-            detail: "Skeleton JSON sent to backend!",
-            life: 3e3
-          });
-        }
-      );
     }
-    function tryLoadSkeletonFromBackend() {
-      postTextData(comfyApp, ROUTES["get-skeleton-json-from-backend"], "", true).then(
-        (jsonData) => {
-          if (jsonData) {
-            const info = new SerializedJoints(jsonData.width, jsonData.height, jsonData.people[0].pose_keypoints_2d);
-            joints2.value = info.toJoints();
-          }
-        }
-      );
+    function tryLoadSkeletonFromWidget() {
+      var _a3;
+      try {
+        const jsonStr = (_a3 = props.skeletonJsonWidget) == null ? void 0 : _a3.value;
+        const info = SerializedJoints.deserialize(jsonStr);
+        joints2.value = info.toJoints();
+      } catch (e2) {
+        comfyApp.extensionManager.toast.add({
+          severity: "error",
+          summary: "Failed to load skeleton JSON!",
+          detail: e2 instanceof Error ? e2.message : "Unknown error",
+          life: 5e3
+        });
+      }
     }
     const fileInputRef = ref();
     function triggerLoadImg() {
@@ -25298,7 +25248,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     onMounted(() => {
       skeletonContainer.value = document.getElementsByClassName("skeleton-container")[0];
       window.addEventListener("mouseup", handleMouseRelease);
-      tryLoadSkeletonFromBackend();
+      tryLoadSkeletonFromWidget();
     });
     onUnmounted(() => {
       window.removeEventListener("mouseup", handleMouseRelease);
@@ -25566,7 +25516,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-83f5369f"]]);
+const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-5a42ee15"]]);
 const _sfc_main = /* @__PURE__ */ defineComponent({
   __name: "App",
   setup(__props) {
@@ -25620,13 +25570,16 @@ const ComfyUIPreset = t(Qr, {
 });
 comfyApp.registerExtension({
   name: "endericedragon.comfyui-openpose-editor-konva",
-  async nodeCreated(node, _app) {
+  async nodeCreated(node, app) {
     if (node.comfyClass === "OpenPoseEditorKonva Controller") {
       const widgets = node.widgets;
       const widthWidget = widgets == null ? void 0 : widgets.find((w2) => w2.name.toLowerCase() === "width");
       const heightWidget = widgets == null ? void 0 : widgets.find((w2) => w2.name.toLowerCase() === "height");
       const skeletonJsonWidget = widgets == null ? void 0 : widgets.find((w2) => w2.name.toLowerCase() === "skeleton_json_str");
       skeletonJsonWidget.hidden = true;
+      app.api.addEventListener("send-skeleton-json", (e2) => {
+        skeletonJsonWidget.value = JSON.stringify(e2.detail);
+      });
       node.addWidget("button", "Open Editor", null, () => {
         window.dispatchEvent(new CustomEvent(EVENTS$1.showEditor, {
           detail: {
@@ -25639,14 +25592,6 @@ comfyApp.registerExtension({
     }
   },
   async setup() {
-    comfyApp.api.addEventListener("using-default", (e2) => {
-      comfyApp.extensionManager.toast.add({
-        severity: "warn",
-        summary: "Using Default",
-        detail: "Using default skeleton. Please save your work before closing the editor.",
-        life: 3e3
-      });
-    });
     let mountPoint = document.createElement("div");
     mountPoint.id = "oe-konva-ui";
     document.body.appendChild(mountPoint);

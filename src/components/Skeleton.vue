@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import 'primeicons/primeicons.css';
 import { Button, Slider, InputGroup, InputGroupAddon } from "primevue";
-import { ref, onMounted, onUnmounted, Ref } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import Konva from "konva";
 import { Stage as VStage, Layer as VLayer, Circle as VCircle, Line as VLine, Image as VImage, Rect as VRect } from 'vue-konva';
-import { setMousePattern, resetMousePattern, Joint, postTextData, postJsonData } from "@/myUtils";
+import { setMousePattern, resetMousePattern, Joint } from "@/myUtils";
 import { StageStatus } from "@/statusCache";
 import { DEFAULT_JOINTS, DEFAULT_BONES, scaleJoints, SerializedJoints } from "@/defaultCoco18";
-import { comfyApp, EMPTY_BASE64, ROUTES } from "@/constants";
+import { comfyApp, EMPTY_BASE64 } from "@/constants";
 
 const emits = defineEmits(["afterClose"]);
 
@@ -104,7 +104,7 @@ function handleDialogClose(doSave: boolean) {
   // 保存骨骼图JSON
   if (doSave) {
     // 只在点击保存时才会记忆骨骼和舞台状态
-    handleSendSkeleton();
+    handleSaveSkeleton();
     // 通知父组件更新状态
     emits("afterClose", ss);
   }
@@ -175,37 +175,29 @@ function handleWheel(e: Konva.KonvaEventObject<WheelEvent>) {
   currentStageScale.value = newScale;
 }
 /**
- * 导出骨骼图的JSON编码，然后传回后端
+ * 导出骨骼图的JSON编码，然后写入隐藏widget中
  */
-function handleSendSkeleton() {
+function handleSaveSkeleton() {
   const serializedJoints = SerializedJoints.fromJoints(joints.value, stageWidth, stageHeight);
   const jsonStr = serializedJoints.serialize();
   props.skeletonJsonWidget.value = jsonStr;
-  const jsonObj = serializedJoints.toObj();
-  // Send to backend
-  postJsonData(comfyApp, ROUTES["send-skeleton-json-to-backend"], jsonObj, false).then(
-    (_) => {
-      comfyApp.extensionManager.toast.add({
-        severity: "success",
-        summary: "OE-Konva Success",
-        detail: "Skeleton JSON sent to backend!",
-        life: 3000
-      });
-    }
-  );
 }
 /**
  * 从后端加载骨骼图JSON
  */
-function tryLoadSkeletonFromBackend() {
-  postTextData(comfyApp, ROUTES["get-skeleton-json-from-backend"], "", true).then(
-    jsonData => {
-      // 由于postTextData只能传递字符串，所以需要解析两次，一次在这里，一次在SerializedJoints.deserialize中
-      if (jsonData) {
-        const info = new SerializedJoints(jsonData.width, jsonData.height, jsonData.people[0].pose_keypoints_2d);
-        joints.value = info.toJoints();
-      }
+function tryLoadSkeletonFromWidget() {
+  try {
+    const jsonStr = props.skeletonJsonWidget?.value;
+    const info = SerializedJoints.deserialize(jsonStr);
+    joints.value = info.toJoints();
+  } catch (e) {
+    comfyApp.extensionManager.toast.add({
+      severity: "error",
+      summary: "Failed to load skeleton JSON!",
+      detail: e instanceof Error ? e.message : "Unknown error",
+      life: 5000,
     });
+  }
 }
 /**
  * 加载背景图片
@@ -315,7 +307,7 @@ const skeletonContainer = ref<Element>();
 onMounted(() => {
   skeletonContainer.value = document.getElementsByClassName("skeleton-container")[0];
   window.addEventListener("mouseup", handleMouseRelease);
-  tryLoadSkeletonFromBackend();
+  tryLoadSkeletonFromWidget();
 });
 onUnmounted(() => {
   window.removeEventListener("mouseup", handleMouseRelease);
