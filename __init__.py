@@ -71,29 +71,26 @@ class EditorController:
 
     async def run(self, width: int, height: int, preview: bool):
         global skeleton_json
-        if skeleton_json:
+        if (
+            skeleton_json
+            and skeleton_json["width"] == width
+            and skeleton_json["height"] == height
+        ):
             # 实际上，若这里记忆的尺寸和前台传来的不一致，就需要弃用记忆
-            if skeleton_json["width"] == width and skeleton_json["height"] == height:
-                return (
-                    image2tensor(draw_pose(skeleton_json)), # todo
-                    json.dumps(skeleton_json),
-                )
-            # todo: 需要清空记忆吗？现在看来不是很有必要
-        # skeleton_json_str为空，或需要弃用记忆
-        PromptServer.instance.send_sync(
-            "using-default", {"width": width, "height": height}
-        )
-        scaled_coco18 = scale_default_coco18(width, height)
-        default_img = draw_pose_coco18_only(width, height, scaled_coco18)
+            img_tensor = image2tensor(draw_pose(skeleton_json))
+        else:
+            # skeleton_json_str为空，或需要弃用记忆
+            # 先创建默认骨骼，再用它给skeleton_json赋值
+            PromptServer.instance.send_sync(
+                "using-default", {"width": width, "height": height}
+            )
+            scaled_coco18 = scale_default_coco18(width, height)
+            default_img = draw_pose_coco18_only(width, height, scaled_coco18)
+            img_tensor = image2tensor(default_img)
+            skeleton_json = coco2skeleton(scaled_coco18, width, height)
         # 保存到 ComfyUI temp 目录，以供前端显示预览图
-        res = (
-            nodes.PreviewImage().save_images(image2tensor(default_img))
-            if preview
-            else dict()
-        )
-        res["result"] = image2tensor(default_img), json.dumps(  # type: ignore
-            coco2skeleton(scaled_coco18, width, height)
-        )
+        res = nodes.PreviewImage().save_images(img_tensor) if preview else dict()
+        res["result"] = img_tensor, json.dumps(skeleton_json)  # type: ignore
         return res  # {"ui": {"images": [...]} "result": (image,)}
 
     @classmethod
