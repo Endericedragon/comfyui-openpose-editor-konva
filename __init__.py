@@ -43,10 +43,17 @@ class EditorController:
                         "display": "Height",
                     },
                 ),
+                "preview_switch": (
+                    "BOOLEAN",
+                    {
+                        "display": "Preview Switch",
+                        "default": True,
+                    },
+                ),
                 # 在前端中被隐藏，专门用来传输数据
                 "skeleton_json_str": (
                     "STRING",
-                    {"display": "Skeleton JSON", "multiline": True},
+                    {"display": "Skeleton JSON"},
                 ),
             }
         }
@@ -56,7 +63,9 @@ class EditorController:
     OUTPUT_NODE = True
     FUNCTION = "run"
 
-    async def run(self, width: int, height: int, skeleton_json_str: str):
+    async def run(
+        self, width: int, height: int, preview_switch: bool, skeleton_json_str: str
+    ):
         skeleton_json: SkeletonData = dict()  # type: ignore
         try:
             skeleton_json: SkeletonData = json.loads(skeleton_json_str)
@@ -79,12 +88,14 @@ class EditorController:
             # 发送skeleton_json_str到前端，前端会更新widget的值
             PromptServer.instance.send_sync("send-skeleton-json", skeleton_json)
         # 保存到 ComfyUI temp 目录，以供前端显示预览图
-        res = nodes.PreviewImage().save_images(img_tensor)
+        res = nodes.PreviewImage().save_images(img_tensor) if preview_switch else dict()
         res["result"] = img_tensor, json.dumps(skeleton_json)  # type: ignore
         return res  # {"ui": {"images": [...]} "result": (image,)}
 
     @classmethod
-    def IS_CHANGED(cls, width: int, height: int, skeleton_json_str: str):
+    def IS_CHANGED(
+        cls, width: int, height: int, preview_switch: bool, skeleton_json_str: str
+    ):
         return "{}{}{}".format(skeleton_json_str, width, height)
 
 
