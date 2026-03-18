@@ -9,7 +9,7 @@ const showEditor = ref(false);
 const editorWidth = ref(512);
 const editorHeight = ref(512);
 const lastStageStatus = ref<null | StageStatus>(null);
-let storageRW: (val: string | null) => string | null;
+let storageRW: (val?: string) => string | null;
 
 function showEditorDialog(e: CustomEvent) {
   editorWidth.value = e.detail.width;

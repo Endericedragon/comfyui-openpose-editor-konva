@@ -28,7 +28,7 @@ comfyApp.registerExtension({
             // 隐藏skeleton_json_str，因为它是用来传输数据的，前端不需要它
             const skeletonJsonWidget = widgets?.find(w => w.name.toLowerCase() === "skeleton_json_str");
             skeletonJsonWidget.hidden = true;
-            function widgetReadWrite(val: string | null) {
+            function widgetReadWrite(val?: string) {
                 if (val) {
                     skeletonJsonWidget.value = val;
                 } else {

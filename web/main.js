@@ -25174,7 +25174,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
       storageRW(jsonStr);
     }
     function tryLoadSkeletonFromWidget() {
-      const jsonStr = storageRW(null);
+      const jsonStr = storageRW();
       const info = SerializedJoints.deserialize(jsonStr);
       if (!info) {
         return;
@@ -25534,7 +25534,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-3135f8d7"]]);
+const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-213fd28d"]]);
 const _sfc_main = /* @__PURE__ */ defineComponent({
   __name: "App",
   setup(__props) {

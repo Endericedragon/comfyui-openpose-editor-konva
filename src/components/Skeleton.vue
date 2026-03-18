@@ -29,11 +29,11 @@ const props = defineProps({
     type: StageStatus,
   },
   storageRW: {
-    type: Function as PropType<(val: string | null) => string | null>,
+    type: Function as PropType<(val?: string) => string | null>,
   }
 });
 const [stageWidth, stageHeight] = [props.width, props.height];
-const storageRW: (val: string | null) => null | string = props.storageRW;
+const storageRW: (val?: string) => string | null = props.storageRW;
 // 初始的关节位置、名字和颜色。
 // 在onMount中，会主动找后端同步最新的骨骼数据。
 const joints = ref<Joint[]>((() => {
@@ -187,7 +187,7 @@ function handleSaveSkeleton() {
  * 从后端加载骨骼图JSON
  */
 function tryLoadSkeletonFromWidget() {
-  const jsonStr = storageRW(null);
+  const jsonStr = storageRW();
   const info = SerializedJoints.deserialize(jsonStr);
   if (!info) {
     return;
