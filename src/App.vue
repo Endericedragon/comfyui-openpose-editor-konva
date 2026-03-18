@@ -8,13 +8,13 @@ import { StageStatus } from "./statusCache.js";
 const showEditor = ref(false);
 const editorWidth = ref(512);
 const editorHeight = ref(512);
-let skeletonJsonWidget: HTMLTextAreaElement | null = null;
 const lastStageStatus = ref<null | StageStatus>(null);
+let storageRW: (val: string | null) => string | null;
 
 function showEditorDialog(e: CustomEvent) {
   editorWidth.value = e.detail.width;
   editorHeight.value = e.detail.height;
-  skeletonJsonWidget = e.detail.jsonWidget;
+  storageRW = e.detail.storageRW;
   showEditor.value = true;
 }
 
@@ -34,7 +34,7 @@ onUnmounted(() => {
 <template>
   <Dialog v-model:visible="showEditor" style="max-width: 85vw; max-height: 85vh;">
     <template #container="{ closeCallback }">
-      <Skeleton :width="editorWidth" :height="editorHeight" :closeCallback="closeCallback" :lastStageStatus :skeletonJsonWidget
+      <Skeleton :width="editorWidth" :height="editorHeight" :closeCallback="closeCallback" :lastStageStatus :storageRW
         @after-close="handleSavingStatus"></Skeleton>
     </template>
   </Dialog>

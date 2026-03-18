@@ -126,7 +126,7 @@ def scale_default_coco18(width: int, height: int) -> Coco18Data:
         Coco18Data: 缩放后的 coco18 数据
     """
     data = load_default_coco18()
-    scale_by: float = width / 480
+    scale_by: float = min(width, height) / 480
     # 先以(0, 0)为中心做放大
     for i in range(len(data["joints"])):
         bruh = data["joints"][i]

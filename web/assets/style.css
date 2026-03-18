@@ -1328,16 +1328,16 @@
     content: "\e926";
 }
 
-.skeleton-container[data-v-dc33b82b] {
+.skeleton-container[data-v-3135f8d7] {
   max-width: 80vw;
   max-height: 70vh;
   overflow: hidden;
   border: dotted grey;
 }
-.sk-joint[data-v-dc33b82b]:hover {
+.sk-joint[data-v-3135f8d7]:hover {
   cursor: pointer;
 }
-.oe-row[data-v-dc33b82b] {
+.oe-row[data-v-3135f8d7] {
   width: 100%;
   position: absolute;
   display: flex;
@@ -1346,18 +1346,18 @@
   align-items: center;
   padding: 0.5em;
 }
-.oe-row[data-v-dc33b82b]>* {
+.oe-row[data-v-3135f8d7]>* {
   margin: 0.5em;
   transition: 0.2s;
   opacity: 0.4;
   z-index: 1 !important;
 }
-.oe-row[data-v-dc33b82b]>*:hover {
+.oe-row[data-v-3135f8d7]>*:hover {
   opacity: 1;
 }
-.opacity-slider[data-v-dc33b82b] {
+.opacity-slider[data-v-3135f8d7] {
   min-width: 8em;
 }
-.opacity-slider[data-v-dc33b82b]>* {
+.opacity-slider[data-v-3135f8d7]>* {
   min-width: 100%;
 }

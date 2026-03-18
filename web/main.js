@@ -24959,7 +24959,7 @@ const DEFAULT_BONES = (() => {
   return coco18.bones.map((bone) => new Bone(bone[0], bone[1], bone[2]));
 })();
 function scaleJoints(joints2, stageWidth, stageHeight) {
-  const scaleX = stageWidth / 480;
+  const scaleX = Math.min(stageWidth, stageHeight) / 480;
   joints2.map((joint) => {
     joint.x *= scaleX;
     joint.y *= scaleX;
@@ -25038,8 +25038,8 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     lastStageStatus: {
       type: StageStatus
     },
-    skeletonJsonWidget: {
-      type: HTMLTextAreaElement
+    storageRW: {
+      type: Function
     }
   },
   emits: ["afterClose"],
@@ -25048,6 +25048,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     const emits = __emit;
     const props = __props;
     const [stageWidth, stageHeight] = [props.width, props.height];
+    const storageRW = props.storageRW;
     const joints2 = ref((() => {
       let res = DEFAULT_JOINTS();
       scaleJoints(res, stageWidth, stageHeight);
@@ -25170,11 +25171,10 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     function handleSaveSkeleton() {
       const serializedJoints = SerializedJoints.fromJoints(joints2.value, stageWidth, stageHeight);
       const jsonStr = serializedJoints.serialize();
-      props.skeletonJsonWidget.value = jsonStr;
+      storageRW(jsonStr);
     }
     function tryLoadSkeletonFromWidget() {
-      var _a3;
-      const jsonStr = (_a3 = props.skeletonJsonWidget) == null ? void 0 : _a3.value;
+      const jsonStr = storageRW(null);
       const info = SerializedJoints.deserialize(jsonStr);
       if (!info) {
         return;
@@ -25534,19 +25534,19 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-dc33b82b"]]);
+const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-3135f8d7"]]);
 const _sfc_main = /* @__PURE__ */ defineComponent({
   __name: "App",
   setup(__props) {
     const showEditor = ref(false);
     const editorWidth = ref(512);
     const editorHeight = ref(512);
-    let skeletonJsonWidget = null;
     const lastStageStatus = ref(null);
+    let storageRW;
     function showEditorDialog(e2) {
       editorWidth.value = e2.detail.width;
       editorHeight.value = e2.detail.height;
-      skeletonJsonWidget = e2.detail.jsonWidget;
+      storageRW = e2.detail.storageRW;
       showEditor.value = true;
     }
     function handleSavingStatus(ss) {
@@ -25570,9 +25570,9 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
             height: editorHeight.value,
             closeCallback,
             lastStageStatus: lastStageStatus.value,
-            skeletonJsonWidget: unref(skeletonJsonWidget),
+            storageRW: unref(storageRW),
             onAfterClose: handleSavingStatus
-          }, null, 8, ["width", "height", "closeCallback", "lastStageStatus", "skeletonJsonWidget"])
+          }, null, 8, ["width", "height", "closeCallback", "lastStageStatus", "storageRW"])
         ]),
         _: 1
       }, 8, ["visible"]);
@@ -25590,6 +25590,13 @@ comfyApp.registerExtension({
   name: "endericedragon.comfyui-openpose-editor-konva",
   async nodeCreated(node, app) {
     if (node.comfyClass === "OpenPoseEditorKonva Controller") {
+      let widgetReadWrite = function(val) {
+        if (val) {
+          skeletonJsonWidget.value = val;
+        } else {
+          return skeletonJsonWidget.value;
+        }
+      };
       const widgets = node.widgets;
       const widthWidget = widgets == null ? void 0 : widgets.find((w2) => w2.name.toLowerCase() === "width");
       const heightWidget = widgets == null ? void 0 : widgets.find((w2) => w2.name.toLowerCase() === "height");
@@ -25603,7 +25610,7 @@ comfyApp.registerExtension({
           detail: {
             width: widthWidget == null ? void 0 : widthWidget.value,
             height: heightWidget == null ? void 0 : heightWidget.value,
-            jsonWidget: skeletonJsonWidget
+            storageRW: widgetReadWrite
           }
         }));
       });

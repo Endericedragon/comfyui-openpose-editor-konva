@@ -12,7 +12,7 @@ const DEFAULT_BONES = (() => {
 })();
 
 function scaleJoints(joints: Joint[], stageWidth: number, stageHeight: number) {
-    const scaleX = stageWidth / 480;
+    const scaleX = Math.min(stageWidth, stageHeight) / 480;
     joints.map(joint => {
         joint.x *= scaleX;
         joint.y *= scaleX;

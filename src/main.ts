@@ -28,6 +28,13 @@ comfyApp.registerExtension({
             // 隐藏skeleton_json_str，因为它是用来传输数据的，前端不需要它
             const skeletonJsonWidget = widgets?.find(w => w.name.toLowerCase() === "skeleton_json_str");
             skeletonJsonWidget.hidden = true;
+            function widgetReadWrite(val: string | null) {
+                if (val) {
+                    skeletonJsonWidget.value = val;
+                } else {
+                    return skeletonJsonWidget.value;
+                }
+            }
             // @ts-ignore
             app.api.addEventListener("send-skeleton-json", (e) => {
                 // 收到skeleton_json_str后，更新widget的值
@@ -40,7 +47,7 @@ comfyApp.registerExtension({
                     detail: {
                         width: widthWidget?.value,
                         height: heightWidget?.value,
-                        jsonWidget: skeletonJsonWidget,
+                        storageRW: widgetReadWrite,
                     }
                 }));
             });
