@@ -71,6 +71,7 @@ class EditorController:
         else:
             # skeleton_json_str为空，或需要弃用记忆
             # 先创建默认骨骼，再用它给skeleton_json赋值
+            print(f"Using default skeleton, resolution = {width} x {height}")
             scaled_coco18 = scale_default_coco18(width, height)
             default_img = draw_pose_coco18_only(width, height, scaled_coco18)
             img_tensor = image2tensor(default_img)

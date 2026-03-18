@@ -65,12 +65,13 @@ class SerializedJoints {
             ]
         };
     }
-
-    static deserialize(jsonStr: string): SerializedJoints | null {
+    /**
+     * 将json字符串解析为SeriailizedJoints对象，不做错误处理，let it crashes
+     * @param jsonStr 待解析的json字符串
+     * @returns 
+     */
+    static deserialize(jsonStr: string): SerializedJoints {
         let jsonData = tryParseJson(jsonStr);
-        if (!jsonData) { 
-            return null;
-        }
         return new SerializedJoints(jsonData.width, jsonData.height, jsonData.people[0].pose_keypoints_2d);
     }
 }

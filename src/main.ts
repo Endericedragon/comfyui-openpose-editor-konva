@@ -7,7 +7,6 @@ import Aura from '@primeuix/themes/aura';
 import { definePreset } from "@primeuix/themes"
 // shared data types
 import { comfyApp, utils, EVENTS } from "./constants.js";
-import { tryParseJson } from "./myUtils.js";
 import App from "./App.vue"
 // extensions/comfyui-openpose-editor-konva是固定的，后续内容和/web目录有关
 const CSS_PATH = "extensions/comfyui-openpose-editor-konva/assets/style.css";
