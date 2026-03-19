@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import 'primeicons/primeicons.css';
-import { Button, Slider, InputGroup, InputGroupAddon } from "primevue";
+import { Button, Slider, InputGroup, InputGroupAddon, ToggleSwitch } from "primevue";
 import { ref, onMounted, onUnmounted, PropType } from "vue";
 import Konva from "konva";
 import { Stage as VStage, Layer as VLayer, Circle as VCircle, Line as VLine, Image as VImage, Rect as VRect } from 'vue-konva';
@@ -41,6 +41,7 @@ const joints = ref<Joint[]>((() => {
   scaleJoints(res, stageWidth, stageHeight);
   return res;
 })());
+const moveAllJoints = ref(false);
 // 初始的骨头连接关系和颜色。均为定值。
 const bones = ref(DEFAULT_BONES);
 // 舞台的一些配置。
@@ -85,13 +86,25 @@ imgTag.onload = _ => {
  * 处理关节移动，将关节的新位置传导回joints数组中。
  * bones会跟着变化的。
  */
-function handleJointMove(e: Konva.KonvaEventObject<DragEvent>) {
+function handleDragJoint(e: Konva.KonvaEventObject<DragEvent>) {
   const target = e.target;
   const targetId = parseInt(target?.id());
   const targetX = target?.x();
   const targetY = target?.y();
-  joints.value[targetId].x = targetX;
-  joints.value[targetId].y = targetY;
+
+  if (moveAllJoints.value) {
+    // 移动所有关节
+    const deltaX = targetX - joints.value[targetId].x;
+    const deltaY = targetY - joints.value[targetId].y;
+    for (let each of joints.value) {
+      each.x += deltaX;
+      each.y += deltaY;
+    }
+  } else {
+    // 只移动鼠标拖拽的那一个关节
+    joints.value[targetId].x = targetX;
+    joints.value[targetId].y = targetY;
+  }
 }
 /**
  * 关闭窗口，可选择是否保存骨骼Json
@@ -400,9 +413,15 @@ onUnmounted(() => {
           radius: 4 / currentStageScale,
           draggable: true,
           fill: joint.color,
-        }" @dragmove="handleJointMove" @mouseover="setMousePattern" @mouseout="resetMousePattern"></v-circle>
+        }" @dragmove="handleDragJoint" @mouseover="setMousePattern" @mouseout="resetMousePattern"></v-circle>
       </v-layer>
     </v-stage>
+  </div>
+
+  <div class="oe-row go-right">
+    <InputGroupAddon>
+      <ToggleSwitch v-model="moveAllJoints" v-tooltip.bottom="'Move the whole skeleton'" />
+    </InputGroupAddon>
   </div>
 </template>
 
@@ -445,5 +464,9 @@ onUnmounted(() => {
 
 .opacity-slider>* {
   min-width: 100%;
+}
+
+.go-right {
+  justify-content: flex-end;
 }
 </style>
