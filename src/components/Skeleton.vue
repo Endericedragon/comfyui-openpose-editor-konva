@@ -249,6 +249,7 @@ function uploadFileInEvent(
  */
 function handleLoadBg(e: Event) {
   uploadFileInEvent(e, "image/", false, (base64str) => {
+    handleClearBg();
     imgTag.src = base64str;
     // 之前已经设计过imgTag.onload 事件，因此这里不需要再处理。
   });
@@ -413,8 +414,10 @@ onUnmounted(() => {
     </v-stage>
   </div>
 
-  <div class="bottom-right-things">
-    <ToggleSwitch v-model="moveAllJoints" v-tooltip.bottom="'Move the whole skeleton'" />
+  <div class="oe-row bottom-right-things">
+    <InputGroupAddon>
+      <ToggleSwitch v-model="moveAllJoints" v-tooltip.bottom="'Move all joints'" />
+    </InputGroupAddon>
   </div>
 </template>
 
@@ -431,7 +434,6 @@ onUnmounted(() => {
 }
 
 .oe-row {
-  width: 100%;
   position: absolute;
   display: flex;
   justify-content: flex-start;
@@ -460,8 +462,7 @@ onUnmounted(() => {
 }
 
 .bottom-right-things {
-  position: absolute;
-  bottom: 1em;
-  right: 1em;
+  bottom: 0em;
+  right: 0em;
 }
 </style>

@@ -70,12 +70,12 @@ def draw_pose_coco18_only(
         draw.line(
             [(x1 * scale_by, y1 * scale_by), (x2 * scale_by, y2 * scale_by)],
             fill=tuple(color),
-            width=round(scale_by * 6 * scaled_than_512),
+            width=round(scale_by * 8 * scaled_than_512),
         )
     # 1.2 再画关节
     for joint in coco18_data["joints"]:
         x, y, color = joint
-        r = 4 * scaled_than_512
+        r = 6 * scaled_than_512
         draw.ellipse(
             [
                 ((x - r) * scale_by, (y - r) * scale_by),
