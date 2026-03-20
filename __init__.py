@@ -28,8 +28,8 @@ class EditorController:
                     {
                         "default": 512,
                         "step": 64,
-                        "min": 64,
-                        "max": 6400,
+                        "min": 512,
+                        "max": 64 * 128,
                         "display": "Width",
                     },
                 ),
@@ -38,8 +38,8 @@ class EditorController:
                     {
                         "default": 512,
                         "step": 64,
-                        "min": 64,
-                        "max": 6400,
+                        "min": 512,
+                        "max": 64 * 128,
                         "display": "Height",
                     },
                 ),

@@ -381,11 +381,6 @@ onUnmounted(() => {
           <i class="pi pi-times"></i>
         </Button>
       </InputGroupAddon>
-      <!-- <InputGroupAddon>
-        <Button @click="handleDebug" v-tooltip.bottom="'Show Debug info'" severity="success">
-          <i class="pi pi-bell"></i>
-        </Button>
-      </InputGroupAddon> -->
     </InputGroup>
   </div>
 
@@ -418,10 +413,8 @@ onUnmounted(() => {
     </v-stage>
   </div>
 
-  <div class="oe-row go-right">
-    <InputGroupAddon>
-      <ToggleSwitch v-model="moveAllJoints" v-tooltip.bottom="'Move the whole skeleton'" />
-    </InputGroupAddon>
+  <div class="bottom-right-things">
+    <ToggleSwitch v-model="moveAllJoints" v-tooltip.bottom="'Move the whole skeleton'" />
   </div>
 </template>
 
@@ -466,7 +459,9 @@ onUnmounted(() => {
   min-width: 100%;
 }
 
-.go-right {
-  justify-content: flex-end;
+.bottom-right-things {
+  position: absolute;
+  bottom: 1em;
+  right: 1em;
 }
 </style>
