@@ -32,7 +32,6 @@ const props = defineProps({
     type: Function as PropType<(val?: string) => string | null>,
   }
 });
-const bgImgCount = ref(0);
 const [stageWidth, stageHeight] = [props.width, props.height];
 const storageRW: (val?: string) => string | null = props.storageRW;
 // 初始的关节位置、名字和颜色。
@@ -45,6 +44,7 @@ const joints = ref<Joint[]>((() => {
 const moveAllJoints = ref(false);
 // 初始的骨头连接关系和颜色。均为定值。
 const bones = ref(DEFAULT_BONES);
+const canDragJoint = ref(true);
 // 舞台的一些配置。
 // 从lastStageStatus中恢复舞台状态。
 const stageRef = ref<Konva.Stage>();
@@ -58,6 +58,7 @@ const stageConfig = ref({
   y: props.lastStageStatus?.offsetY || 0,
 });
 // 背景图片和黑幕的配置。
+const bgImgCount = ref(0);
 const rectConfig = ref({
   width: stageWidth,
   height: stageHeight,
@@ -148,6 +149,7 @@ function handleStageMidDrag(e: Konva.KonvaEventObject<MouseEvent>) {
     // Middle key
     e.evt.preventDefault();
     stageRef.value?.getStage()?.draggable(true);
+    canDragJoint.value = false;
     setMousePattern();
   }
 }
@@ -160,8 +162,9 @@ function handleMouseRelease(e: MouseEvent) {
   if (mouseKey === 1) {
     // Middle key
     e.preventDefault();
-    if (stage && stage.draggable()) {
+    if (stage && stage.draggable() && !canDragJoint.value) {
       stage.draggable(false);
+      canDragJoint.value = true;
     }
     resetMousePattern();
   }
@@ -397,7 +400,7 @@ onUnmounted(() => {
         <v-rect :config="rectConfig"></v-rect>
       </v-layer>
       <v-layer>
-        <v-image :config="bgConfig" :key="bgImgCount"/>
+        <v-image :config="bgConfig" :key="bgImgCount" />
       </v-layer>
       <v-layer>
         <v-line v-for="(bone, idx) in bones" :key="'bone-' + idx" :config="{
@@ -413,7 +416,7 @@ onUnmounted(() => {
           y: joint.y,
           // radius: 4,
           radius: 4 / currentStageScale,
-          draggable: true,
+          draggable: canDragJoint,
           fill: joint.color,
         }" @dragmove="handleDragJoint" @mouseover="setMousePattern" @mouseout="resetMousePattern"></v-circle>
       </v-layer>

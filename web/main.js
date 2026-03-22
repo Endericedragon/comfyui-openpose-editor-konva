@@ -25211,7 +25211,6 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     var _a2, _b, _c, _d, _e2;
     const emits = __emit;
     const props = __props;
-    const bgImgCount = ref(0);
     const [stageWidth, stageHeight] = [props.width, props.height];
     const storageRW = props.storageRW;
     const joints2 = ref((() => {
@@ -25221,6 +25220,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     })());
     const moveAllJoints = ref(false);
     const bones2 = ref(DEFAULT_BONES);
+    const canDragJoint = ref(true);
     const stageRef = ref();
     const currentStageScale = ref(((_a2 = props.lastStageStatus) == null ? void 0 : _a2.scale) || 1);
     const stageConfig = ref({
@@ -25231,6 +25231,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
       x: ((_b = props.lastStageStatus) == null ? void 0 : _b.offsetX) || 0,
       y: ((_c = props.lastStageStatus) == null ? void 0 : _c.offsetY) || 0
     });
+    const bgImgCount = ref(0);
     const rectConfig = ref({
       width: stageWidth,
       height: stageHeight,
@@ -25307,6 +25308,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
       if (mouseKey === 1) {
         e2.evt.preventDefault();
         (_b2 = (_a3 = stageRef.value) == null ? void 0 : _a3.getStage()) == null ? void 0 : _b2.draggable(true);
+        canDragJoint.value = false;
         setMousePattern();
       }
     }
@@ -25316,8 +25318,9 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
       const stage = (_a3 = stageRef.value) == null ? void 0 : _a3.getStage();
       if (mouseKey === 1) {
         e2.preventDefault();
-        if (stage && stage.draggable()) {
+        if (stage && stage.draggable() && !canDragJoint.value) {
           stage.draggable(false);
+          canDragJoint.value = true;
         }
         resetMousePattern();
       }
@@ -25693,7 +25696,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
                         y: joint.y,
                         // radius: 4,
                         radius: 4 / currentStageScale.value,
-                        draggable: true,
+                        draggable: canDragJoint.value,
                         fill: joint.color
                       },
                       onDragmove: handleDragJoint,
@@ -25737,7 +25740,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-a836cb82"]]);
+const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-08b11dd8"]]);
 const _sfc_main = /* @__PURE__ */ defineComponent({
   __name: "App",
   setup(__props) {
