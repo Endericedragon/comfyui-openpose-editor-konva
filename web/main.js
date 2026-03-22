@@ -25360,7 +25360,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
       var _a3;
       (_a3 = fileInputRef.value) == null ? void 0 : _a3.click();
     }
-    function uploadFileInEvent(e2, expectedType, wantPlainText = true, callbackFn) {
+    function uploadFileInEvent(e2, expectedType, wantPlainText = true, progressFn, loadEndFn) {
       var _a3;
       const input = e2.target;
       const file = (_a3 = input.files) == null ? void 0 : _a3[0];
@@ -25377,10 +25377,13 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
         var _a4;
         alert("Failed to read file! " + ((_a4 = e22.target) == null ? void 0 : _a4.error));
       };
-      reader.onload = (e22) => {
+      reader.onprogress = (e22) => {
+        progressFn(e22.loaded, e22.total);
+      };
+      reader.onloadend = (e22) => {
         var _a4;
         const result = (_a4 = e22.target) == null ? void 0 : _a4.result;
-        callbackFn(result);
+        loadEndFn(result);
       };
       if (wantPlainText) {
         reader.readAsText(file);
@@ -25390,8 +25393,10 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
       input.value = "";
     }
     function handleLoadBg(e2) {
-      uploadFileInEvent(e2, "image/", false, (base64str) => {
-        handleClearBg();
+      uploadFileInEvent(e2, "image/", false, (loaded, total) => {
+        imgTag.src = "";
+        console.log(`Loading background: ${(100 * loaded / total).toFixed(2)}%`);
+      }, (base64str) => {
         imgTag.src = base64str;
       });
     }
@@ -25404,7 +25409,8 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
       (_a3 = jsonInputRef.value) == null ? void 0 : _a3.click();
     }
     function handleLoadSkeleton(e2) {
-      uploadFileInEvent(e2, "application/json", true, (result) => {
+      uploadFileInEvent(e2, "application/json", true, () => {
+      }, (result) => {
         const uploadedInfo = SerializedJoints.deserialize(result);
         if (!uploadedInfo) {
           return;
@@ -25727,7 +25733,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-57d524d7"]]);
+const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-0a3bb6db"]]);
 const _sfc_main = /* @__PURE__ */ defineComponent({
   __name: "App",
   setup(__props) {

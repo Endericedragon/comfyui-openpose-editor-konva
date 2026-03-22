@@ -215,7 +215,7 @@ function triggerLoadImg() {
   fileInputRef.value?.click();
 }
 function uploadFileInEvent(
-  e: Event, expectedType: string, wantPlainText: boolean = true, callbackFn: (result: string) => void
+  e: Event, expectedType: string, wantPlainText: boolean = true, progressFn: (loaded: number, total: number) => void, loadEndFn: (result: string) => void
 ) {
   const input = e.target as HTMLInputElement;
   const file = input.files?.[0];
@@ -233,10 +233,13 @@ function uploadFileInEvent(
   reader.onerror = (e) => {
     alert("Failed to read file! " + e.target?.error);
   };
-  reader.onload = (e) => {
+  reader.onprogress = (e) => {
+    progressFn(e.loaded, e.total);
+  };
+  reader.onloadend = (e) => {
     const result = e.target?.result as string;
-    callbackFn(result);
-  }
+    loadEndFn(result);
+  };
   if (wantPlainText) {
     reader.readAsText(file);
   } else {
@@ -248,8 +251,10 @@ function uploadFileInEvent(
  * 用上传的图片替换当前背景
  */
 function handleLoadBg(e: Event) {
-  uploadFileInEvent(e, "image/", false, (base64str) => {
-    handleClearBg();
+  uploadFileInEvent(e, "image/", false, (loaded, total) => {
+    imgTag.src = "";
+    console.log(`Loading background: ${(100 * loaded / total).toFixed(2)}%`);
+  }, (base64str) => {
     imgTag.src = base64str;
     // 之前已经设计过imgTag.onload 事件，因此这里不需要再处理。
   });
@@ -266,7 +271,7 @@ function triggerLoadSkeleton() {
  * 加载上传的骨骼图JSON文件
  */
 function handleLoadSkeleton(e: Event) {
-  uploadFileInEvent(e, "application/json", true, (result) => {
+  uploadFileInEvent(e, "application/json", true, () => { }, (result) => {
     const uploadedInfo = SerializedJoints.deserialize(result);
     if (!uploadedInfo) {
       return;
