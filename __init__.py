@@ -27,7 +27,7 @@ class EditorController:
                     "INT",
                     {
                         "default": 512,
-                        "step": 64,
+                        "step": 8,
                         "min": 512,
                         "max": 64 * 128,
                         "display": "Width",
@@ -37,7 +37,7 @@ class EditorController:
                     "INT",
                     {
                         "default": 512,
-                        "step": 64,
+                        "step": 8,
                         "min": 512,
                         "max": 64 * 128,
                         "display": "Height",

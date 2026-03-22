@@ -2,6 +2,12 @@
 
 ## 概述 - Overview
 
+### 这是啥？- What is this?
+
+ComfyUI-Openpose-Editor-Konva 是个用于ComfyUI的自定义节点，提供一个Openpose编辑器（采用Coco 18关节骨骼模型），用户可在编辑器中直接调整骨骼姿态并输出给ControlNet使用。
+
+ComfyUI-Openpose-Editor-Konva is a ComfyUI custom node that provides an Openpose editor (using the Coco 18 joint skeleton model). Users can adjust the skeleton in the editor and output it to other nodes such as ControlNet node.
+
 ### 怎么用？- How to use this node?
 
 1. 搜索`OpenPoseEditorKonva Controller`节点，并将其添加到您的工作流。Search for `OpenPoseEditorKonva Controller` node, and add it to your workflow.
