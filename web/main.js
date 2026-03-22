@@ -25211,6 +25211,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     var _a2, _b, _c, _d, _e2;
     const emits = __emit;
     const props = __props;
+    const bgImgCount = ref(0);
     const [stageWidth, stageHeight] = [props.width, props.height];
     const storageRW = props.storageRW;
     const joints2 = ref((() => {
@@ -25394,9 +25395,9 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     }
     function handleLoadBg(e2) {
       uploadFileInEvent(e2, "image/", false, (loaded, total) => {
-        imgTag.src = "";
         console.log(`Loading background: ${(100 * loaded / total).toFixed(2)}%`);
       }, (base64str) => {
+        bgImgCount.value++;
         imgTag.src = base64str;
       });
     }
@@ -25663,7 +25664,10 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
               }),
               createVNode(unref(oe), null, {
                 default: withCtx(() => [
-                  createVNode(unref(ne), { config: bgConfig.value }, null, 8, ["config"])
+                  (openBlock(), createBlock(unref(ne), {
+                    config: bgConfig.value,
+                    key: bgImgCount.value
+                  }, null, 8, ["config"]))
                 ]),
                 _: 1
               }),
@@ -25733,7 +25737,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-0a3bb6db"]]);
+const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-a836cb82"]]);
 const _sfc_main = /* @__PURE__ */ defineComponent({
   __name: "App",
   setup(__props) {

@@ -32,6 +32,7 @@ const props = defineProps({
     type: Function as PropType<(val?: string) => string | null>,
   }
 });
+const bgImgCount = ref(0);
 const [stageWidth, stageHeight] = [props.width, props.height];
 const storageRW: (val?: string) => string | null = props.storageRW;
 // 初始的关节位置、名字和颜色。
@@ -252,9 +253,9 @@ function uploadFileInEvent(
  */
 function handleLoadBg(e: Event) {
   uploadFileInEvent(e, "image/", false, (loaded, total) => {
-    imgTag.src = "";
     console.log(`Loading background: ${(100 * loaded / total).toFixed(2)}%`);
   }, (base64str) => {
+    bgImgCount.value++;
     imgTag.src = base64str;
     // 之前已经设计过imgTag.onload 事件，因此这里不需要再处理。
   });
@@ -396,7 +397,7 @@ onUnmounted(() => {
         <v-rect :config="rectConfig"></v-rect>
       </v-layer>
       <v-layer>
-        <v-image :config="bgConfig" />
+        <v-image :config="bgConfig" :key="bgImgCount"/>
       </v-layer>
       <v-layer>
         <v-line v-for="(bone, idx) in bones" :key="'bone-' + idx" :config="{
