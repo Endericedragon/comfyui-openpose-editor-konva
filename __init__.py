@@ -2,9 +2,8 @@ from server import PromptServer
 from .utils import (
     SkeletonData,
     coco2skeleton,
-    draw_pose,
-    draw_pose_coco18_only,
-    image2tensor,
+    draw_skeleton,
+    draw_coco18_cv2,
     pose_kp2json,
     scale_default_coco18,
 )
@@ -76,14 +75,14 @@ class EditorController:
             and skeleton_json.get("height", -1) == height
         ):
             # 仅当记忆的尺寸和前端传来的一致，才能复用记忆
-            img_tensor = image2tensor(draw_pose(skeleton_json))
+            img_tensor = draw_skeleton(skeleton_json)
         else:
             # skeleton_json_str为空，或需要弃用记忆
             # 先创建默认骨骼，再用它给skeleton_json赋值
             print(f"Using default skeleton, resolution = {width} x {height}")
             scaled_coco18 = scale_default_coco18(width, height)
-            default_img = draw_pose_coco18_only(width, height, scaled_coco18)
-            img_tensor = image2tensor(default_img)
+            default_img = draw_coco18_cv2(width, height, scaled_coco18)
+            img_tensor = default_img
             skeleton_json = coco2skeleton(scaled_coco18, width, height)
             # 发送skeleton_json_str到前端，前端会更新widget的值
             PromptServer.instance.send_sync("send-skeleton-json", skeleton_json)

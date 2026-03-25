@@ -1,11 +1,8 @@
-import math
-
-from PIL import Image, ImageDraw
-from PIL.ImageFile import ImageFile
 from .types import Coco18Data, SkeletonData, PoseKeypoint
 
 import cv2
 import json
+import math
 import numpy as np
 import pathlib
 import torch
@@ -19,33 +16,13 @@ def use_routes() -> dict[str, str]:
     return routes
 
 
-def image2tensor(img: ImageFile | Image.Image) -> torch.Tensor:
-    """
-    将PIL ImageFile转换为 torch.Tensor，形状为 [1, H, W, C] (RGB, 0-1)
-
-    Args:
-        img: PIL ImageFile，RGB模式，值范围 0~255
-
-    Returns:
-        torch.Tensor: 形状 [1, H, W, C]，数据类型 torch.float32，值范围 0~1
-    """
-    # 先转换为 RGB（去掉 alpha 通道，如果有）
-    # 获取 numpy 数组，形状 (H, W, C)
-    img_np = np.array(img.convert("RGB")).astype(np.float32) / 255.0  # 归一化到 [0,1]
-
-    # 4. 转换为 torch Tensor 并增加 batch 维度
-    tensor = torch.from_numpy(img_np).unsqueeze(0)  # [1, H, W, C]
-
-    return tensor
-
-
-def draw_pose_coco18_only_cv2(
+def draw_coco18_cv2(
     canvas_width: int,
     canvas_height: int,
     coco18_data: Coco18Data | None,
 ) -> torch.Tensor:
     """
-    接受coco18数据，并返回torch.Tensor
+    接受coco18数据，使用cv2绘制并返回torch.Tensor
 
     Args:
         width: 期望图像的宽度
@@ -55,7 +32,9 @@ def draw_pose_coco18_only_cv2(
     Returns:
         tensor: torch.Tensor，形状为 [1, H, W, C]，数据类型 torch.float32，值范围 0~1
     """
-    img = np.zeros((canvas_height, canvas_width, 3), dtype=np.uint8)
+    msaa_scale: int = 3
+    img = np.zeros((canvas_height * msaa_scale, canvas_width * msaa_scale, 3), dtype=np.uint8)
+    msaa_scale_sqrt: float = math.sqrt(msaa_scale)
     scaled_than_512: float = min(canvas_width, canvas_height) / 512.0
     if coco18_data is None:
         coco18_data = load_default_coco18()
@@ -63,69 +42,30 @@ def draw_pose_coco18_only_cv2(
         from_joint, to_joint, color = bone
         x1, y1 = coco18_data["joints"][from_joint][:2]
         x2, y2 = coco18_data["joints"][to_joint][:2]
-        center = round(x1 + x2) // 2, round(y1 + y2) // 2
-        radius_x = round(math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2))
-        radius_y = round(4 * scaled_than_512)
+        x1 *= msaa_scale
+        y1 *= msaa_scale
+        x2 *= msaa_scale
+        y2 *= msaa_scale
+        center = round((x1 + x2) / 2), round((y1 + y2) / 2)
+        radius_x = round(
+            math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2) / 2
+        )  # half bone length
+        radius_y = round(4 * scaled_than_512 * msaa_scale)  # maximum bone width (half)
         angle = math.atan2(y2 - y1, x2 - x1) * 180 / math.pi
         cv2.ellipse(img, center, (radius_x, radius_y), angle, 0, 360, color, -1)
     for joint in coco18_data["joints"]:
         x, y, color = joint
-        r = round(6 * scaled_than_512)
+        x *= msaa_scale
+        y *= msaa_scale
+        r = round(6 * scaled_than_512 * msaa_scale_sqrt)
         center = round(x), round(y)
         cv2.circle(img, center, r, color, -1)
-    tensor = torch.from_numpy(img.astype(np.float32) / 255.0).unsqueeze(0)
+    blurred = cv2.resize(cv2.GaussianBlur(img, (3, 3), 0), (canvas_width, canvas_height))
+    tensor = torch.from_numpy(blurred.astype(np.float32) / 255.0).unsqueeze(0)
     return tensor
 
 
-def draw_pose_coco18_only(
-    canvas_width: int,
-    canvas_height: int,
-    coco18_data: Coco18Data | None,
-) -> Image.Image:
-    """
-    接受coco18数据，并返回一个 PIL ImageFile，RGB模式，值范围 0~255
-
-    Args:
-        width: 期望图像的宽度
-        height: 期望图像的高度
-        coco18_data: coco18 数据，若无则本地读取
-
-    Returns:
-        img: PIL ImageFile，RGB模式，值范围 0~255
-    """
-    if coco18_data is None:
-        coco18_data = load_default_coco18()
-    # 0. 缩放比例以实现近似抗锯齿
-    scale_by: int = 4
-    scaled_than_512: float = min(canvas_width, canvas_height) / 512.0
-    # 1. 空白画布
-    img = Image.new("RGB", (canvas_width * scale_by, canvas_height * scale_by))
-    draw = ImageDraw.Draw(img)
-    # 1.1 先画骨骼
-    for bone in coco18_data["bones"]:
-        from_joint, to_joint, color = bone
-        x1, y1 = coco18_data["joints"][from_joint][:2]
-        x2, y2 = coco18_data["joints"][to_joint][:2]
-        draw.line(
-            [(x1 * scale_by, y1 * scale_by), (x2 * scale_by, y2 * scale_by)],
-            fill=tuple(color),
-            width=round(scale_by * 8 * scaled_than_512),
-        )
-    # 1.2 再画关节
-    for joint in coco18_data["joints"]:
-        x, y, color = joint
-        r = 6 * scaled_than_512
-        draw.ellipse(
-            [
-                ((x - r) * scale_by, (y - r) * scale_by),
-                ((x + r) * scale_by, (y + r) * scale_by),
-            ],
-            fill=tuple(color),
-        )
-    return img.resize((canvas_width, canvas_height), Image.Resampling.LANCZOS)
-
-
-def draw_pose(skeleton_data: SkeletonData) -> Image.Image:
+def draw_skeleton(skeleton_data: SkeletonData) -> torch.Tensor:
     """
     接受被用户修改过的skeleton数据，用它修正默认的coco18数据，以重现前端的骨骼图像
 
@@ -142,9 +82,7 @@ def draw_pose(skeleton_data: SkeletonData) -> Image.Image:
         x, y = pose_keypoints_2d[i], pose_keypoints_2d[i + 1]
         coco18_data["joints"][i // 3] = (x, y, coco18_data["joints"][i // 3][2])
     # 1. 调用 draw_pose_coco18_only 函数
-    return draw_pose_coco18_only(
-        skeleton_data["width"], skeleton_data["height"], coco18_data
-    )
+    return draw_coco18_cv2(skeleton_data["width"], skeleton_data["height"], coco18_data)
 
 
 def load_default_coco18() -> Coco18Data:
