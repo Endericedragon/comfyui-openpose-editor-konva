@@ -1,9 +1,10 @@
-from io import BytesIO
+import math
+
 from PIL import Image, ImageDraw
 from PIL.ImageFile import ImageFile
 from .types import Coco18Data, SkeletonData, PoseKeypoint
 
-import base64
+import cv2
 import json
 import numpy as np
 import pathlib
@@ -35,6 +36,44 @@ def image2tensor(img: ImageFile | Image.Image) -> torch.Tensor:
     # 4. 转换为 torch Tensor 并增加 batch 维度
     tensor = torch.from_numpy(img_np).unsqueeze(0)  # [1, H, W, C]
 
+    return tensor
+
+
+def draw_pose_coco18_only_cv2(
+    canvas_width: int,
+    canvas_height: int,
+    coco18_data: Coco18Data | None,
+) -> torch.Tensor:
+    """
+    接受coco18数据，并返回torch.Tensor
+
+    Args:
+        width: 期望图像的宽度
+        height: 期望图像的高度
+        coco18_data: coco18 数据，若无则本地读取
+
+    Returns:
+        tensor: torch.Tensor，形状为 [1, H, W, C]，数据类型 torch.float32，值范围 0~1
+    """
+    img = np.zeros((canvas_height, canvas_width, 3), dtype=np.uint8)
+    scaled_than_512: float = min(canvas_width, canvas_height) / 512.0
+    if coco18_data is None:
+        coco18_data = load_default_coco18()
+    for bone in coco18_data["bones"]:
+        from_joint, to_joint, color = bone
+        x1, y1 = coco18_data["joints"][from_joint][:2]
+        x2, y2 = coco18_data["joints"][to_joint][:2]
+        center = round(x1 + x2) // 2, round(y1 + y2) // 2
+        radius_x = round(math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2))
+        radius_y = round(4 * scaled_than_512)
+        angle = math.atan2(y2 - y1, x2 - x1) * 180 / math.pi
+        cv2.ellipse(img, center, (radius_x, radius_y), angle, 0, 360, color, -1)
+    for joint in coco18_data["joints"]:
+        x, y, color = joint
+        r = round(6 * scaled_than_512)
+        center = round(x), round(y)
+        cv2.circle(img, center, r, color, -1)
+    tensor = torch.from_numpy(img.astype(np.float32) / 255.0).unsqueeze(0)
     return tensor
 
 

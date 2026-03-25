@@ -3,7 +3,7 @@ import 'primeicons/primeicons.css';
 import { Button, Slider, InputGroup, InputGroupAddon, ToggleSwitch } from "primevue";
 import { ref, onMounted, onUnmounted, PropType } from "vue";
 import Konva from "konva";
-import { Stage as VStage, Layer as VLayer, Circle as VCircle, Line as VLine, Image as VImage, Rect as VRect, Ellipse as VEllipse } from 'vue-konva';
+import { Stage as VStage, Layer as VLayer, Circle as VCircle, Image as VImage, Rect as VRect, Ellipse as VEllipse } from 'vue-konva';
 import { setMousePattern, resetMousePattern } from "@/myUtils";
 import { StageStatus } from "@/statusCache";
 import { Joint, DEFAULT_JOINTS, DEFAULT_BONES, scaleJoints, SerializedJoints } from "@/defaultCoco18";
