@@ -33,8 +33,8 @@ def draw_coco18_cv2(
         tensor: torch.Tensor，形状为 [1, H, W, C]，数据类型 torch.float32，值范围 0~1
     """
     msaa_scale: int = 3
+    msaa_scale_half: float = (msaa_scale - 1) / 2.0 + 1
     img = np.zeros((canvas_height * msaa_scale, canvas_width * msaa_scale, 3), dtype=np.uint8)
-    msaa_scale_sqrt: float = math.sqrt(msaa_scale)
     scaled_than_512: float = min(canvas_width, canvas_height) / 512.0
     if coco18_data is None:
         coco18_data = load_default_coco18()
@@ -57,7 +57,7 @@ def draw_coco18_cv2(
         x, y, color = joint
         x *= msaa_scale
         y *= msaa_scale
-        r = round(6 * scaled_than_512 * msaa_scale_sqrt)
+        r = round(6 * scaled_than_512 * msaa_scale_half)
         center = round(x), round(y)
         cv2.circle(img, center, r, color, -1)
     blurred = cv2.resize(cv2.GaussianBlur(img, (3, 3), 0), (canvas_width, canvas_height))
