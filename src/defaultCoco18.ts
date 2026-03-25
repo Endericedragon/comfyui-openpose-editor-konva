@@ -1,5 +1,59 @@
-import { Joint, Bone, tryParseJson } from "@/myUtils"
+import { triple2ColorStr, tryParseJson } from "@/myUtils"
 import coco18 from "./coco18_data.json"
+
+class Joint {
+    x: number;
+    y: number;
+    color: string;
+
+    constructor(x: number, y: number, color: number[]) {
+        this.x = x;
+        this.y = y;
+        this.color = triple2ColorStr(color);
+    }
+}
+
+class Bone {
+    from: number;
+    to: number;
+    color: string;
+
+    constructor(from: number, to: number, color: number[]) {
+        this.from = from;
+        this.to = to;
+        this.color = triple2ColorStr(color);
+    }
+
+    getKonvaBonePoints(jointMapping: Joint[]) {
+        const fromJoint = jointMapping[this.from];
+        const toJoint = jointMapping[this.to];
+        if (!fromJoint || !toJoint) {
+            throw new Error("Invalid joint index");
+        }
+        return [fromJoint.x, fromJoint.y, toJoint.x, toJoint.y];
+    }
+
+    getEllipseConfig(jointMapping: Joint[], currentStageScale: number) {
+        const jointFrom = jointMapping[this.from];
+        const jointTo = jointMapping[this.to];
+        if (!jointFrom || !jointTo) {
+            throw new Error("Invalid joint index");
+        }
+        const centerX = (jointFrom.x + jointTo.x) / 2;
+        const centerY = (jointFrom.y + jointTo.y) / 2;
+        const boneLength = Math.sqrt((jointTo.x - jointFrom.x) ** 2 + (jointTo.y - jointFrom.y) ** 2);
+        const boneAngle = Math.atan2(jointTo.y - jointFrom.y, jointTo.x - jointFrom.x) * 180 / Math.PI;
+        return {
+            x: centerX,
+            y: centerY,
+            radiusX: boneLength / 2,
+            radiusY: 3 / currentStageScale,
+            rotation: boneAngle,
+            fill: this.color,
+            strokeWidth: 0,
+        };
+    }
+}
 
 const DEFAULT_JOINTS = () => {
     // @ts-ignore
@@ -76,4 +130,4 @@ class SerializedJoints {
     }
 }
 
-export { DEFAULT_JOINTS, DEFAULT_BONES, scaleJoints, SerializedJoints }
+export { Joint, Bone, DEFAULT_JOINTS, DEFAULT_BONES, scaleJoints, SerializedJoints }

@@ -3,10 +3,10 @@ import 'primeicons/primeicons.css';
 import { Button, Slider, InputGroup, InputGroupAddon, ToggleSwitch } from "primevue";
 import { ref, onMounted, onUnmounted, PropType } from "vue";
 import Konva from "konva";
-import { Stage as VStage, Layer as VLayer, Circle as VCircle, Line as VLine, Image as VImage, Rect as VRect } from 'vue-konva';
-import { setMousePattern, resetMousePattern, Joint } from "@/myUtils";
+import { Stage as VStage, Layer as VLayer, Circle as VCircle, Line as VLine, Image as VImage, Rect as VRect, Ellipse as VEllipse } from 'vue-konva';
+import { setMousePattern, resetMousePattern } from "@/myUtils";
 import { StageStatus } from "@/statusCache";
-import { DEFAULT_JOINTS, DEFAULT_BONES, scaleJoints, SerializedJoints } from "@/defaultCoco18";
+import { Joint, DEFAULT_JOINTS, DEFAULT_BONES, scaleJoints, SerializedJoints } from "@/defaultCoco18";
 import { comfyApp, EMPTY_BASE64 } from "@/constants";
 
 const emits = defineEmits(["afterClose"]);
@@ -403,12 +403,8 @@ onUnmounted(() => {
         <v-image :config="bgConfig" :key="bgImgCount" />
       </v-layer>
       <v-layer>
-        <v-line v-for="(bone, idx) in bones" :key="'bone-' + idx" :config="{
-          points: bone.getKonvaBonePoints(joints),
-          stroke: bone.color,
-          // strokeWidth: 5,
-          strokeWidth: 5 / currentStageScale,
-        }"></v-line>
+        <v-ellipse v-for="(bone, idx) in bones" :key="'ebone-' + idx"
+          :config="bone.getEllipseConfig(joints, currentStageScale)"></v-ellipse>
 
         <v-circle class="sk-joint" v-for="(joint, idx) in joints" :config="{
           id: `${idx}`,
