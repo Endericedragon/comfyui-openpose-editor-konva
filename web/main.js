@@ -9654,17 +9654,11 @@ var Nr, Qr = (Nr = ((r2, e2) => {
   return r2;
 })({}, e$R), e(Nr, m({ components: { accordion: c$p, autocomplete: a$F, avatar: n$B, badge: d$v, blockui: o$1h, breadcrumb: t$D, button: e$Q, card: d$u, carousel: t$B, cascadeselect: f$8, checkbox: e$N, chip: s$8, colorpicker: s$7, confirmdialog: r$15, confirmpopup: a$A, contextmenu: c$k, datatable: k$2, dataview: c$i, datepicker: k$1, dialog: e$F, divider: t$w, dock: d$o, drawer: e$D, editor: l$a, fieldset: e$B, fileupload: i$j, floatlabel: d$k, galleria: l$9, iconfield: r$S, iftalabel: i$g, image: e$y, imagecompare: r$Q, inlinemessage: a$q, inplace: n$q, inputchips: f$4, inputgroup: o$O, inputnumber: a$p, inputotp: e$v, inputtext: d$h, knob: c$f, listbox: n$o, megamenu: g$1, menu: r$G, menubar: e$s, message: u$3, metergroup: b$2, multiselect: n$j, orderlist: o$D, organizationchart: n$i, overlaybadge: t$j, paginator: n$h, panel: a$h, panelmenu: a$g, password: n$e, picklist: o$w, popover: e$k, progressbar: t$f, progressspinner: r$s, radiobutton: e$i, rating: i$8, ripple: o$q, scrollpanel: a$d, select: n$d, selectbutton: d$9, skeleton: o$m, slider: a$a, speeddial: a$9, splitbutton: d$8, splitter: t$c, stepper: i$6, steps: c$9, tabmenu: n$8, tabs: i$5, tabview: e$b, tag: n$5, terminal: e$a, textarea: d$5, tieredmenu: c$5, timeline: d$4, toast: u$2, togglebutton: c$3, toggleswitch: c$2, toolbar: r$5, tooltip: e$5, tree: d$2, treeselect: a$2, treetable: k, virtualscroller: e$1 } })));
 var t = (...t2) => ke(...t2);
-const ROUTES = {
-  "set-bone-style": "/oe-konva/set-bone-style"
-};
 const cuWin = window;
 const comfyApp = cuWin.comfyAPI.app.app;
 const utils = cuWin.comfyAPI.utils;
 const EVENTS$1 = {
   showEditor: "showOpenPoseEditorKonva"
-};
-const OPTIONS = {
-  boneStyle: "comfyui-openpose-editor-konva.bone_style"
 };
 const EMPTY_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IB2cksfwAAAARnQU1BAACxjwv8YQUAAAAgY0hSTQAAeiYAAICEAAD6AAAAgOgAAHUwAADqYAAAOpgAABdwnLpRPAAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAAuIwAALiMBeKU/dgAAAAd0SU1FB+oDDgIvDipUXqMAAAALSURBVAjXY2AAAgAABQAB4iYFmwAAAABJRU5ErkJggg==";
 function blockBodyScroll() {
@@ -25070,25 +25064,6 @@ function tryParseJson(jsonStr) {
     return null;
   }
 }
-async function postTextData(route, text) {
-  const resp = await comfyApp.api.fetchApi(route, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain" },
-    body: text
-  });
-  switch (resp.status) {
-    case 200:
-      return resp.text();
-    default:
-      comfyApp.extensionManager.toast.add({
-        severity: "error",
-        summary: "RPC Error",
-        detail: `Status code = ${resp.status}`,
-        life: 3e3
-      });
-      return Promise.reject(resp.status);
-  }
-}
 class StageStatus {
   // 背景图片的缩放比例
   constructor(opacity, bgImgBase64, offsetX, offsetY, scale) {
@@ -25249,7 +25224,10 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     lastStageStatus: {
       type: StageStatus
     },
-    storageRW: {
+    jsonStrRW: {
+      type: Function
+    },
+    boneStyleRW: {
       type: Function
     }
   },
@@ -25259,7 +25237,9 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     const emits = __emit;
     const props = __props;
     const [stageWidth, stageHeight] = [props.width, props.height];
-    const storageRW = props.storageRW;
+    const jsonStrRW = props.jsonStrRW;
+    const boneStyleRW = props.boneStyleRW;
+    console.log(jsonStrRW, boneStyleRW);
     const joints2 = ref((() => {
       let res = DEFAULT_JOINTS();
       scaleJoints(res, stageWidth, stageHeight);
@@ -25396,10 +25376,10 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     function handleSaveSkeleton() {
       const serializedJoints = SerializedJoints.fromJoints(joints2.value, stageWidth, stageHeight);
       const jsonStr = serializedJoints.serialize();
-      storageRW(jsonStr);
+      jsonStrRW(jsonStr);
     }
     function tryLoadSkeletonFromWidget() {
-      const jsonStr = storageRW();
+      const jsonStr = jsonStrRW();
       const info = SerializedJoints.deserialize(jsonStr);
       if (!info) {
         return;
@@ -25493,9 +25473,6 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     function handleResetSkeleton() {
       joints2.value = DEFAULT_JOINTS();
       scaleJoints(joints2.value, stageWidth, stageHeight);
-    }
-    function useEllipseBoneStyle() {
-      return comfyApp.extensionManager.setting.get(OPTIONS.boneStyle) === "ellipse";
     }
     const skeletonContainer = ref();
     onMounted(() => {
@@ -25726,7 +25703,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
               }),
               createVNode(unref(oe), null, {
                 default: withCtx(() => [
-                  useEllipseBoneStyle() ? (openBlock(true), createElementBlock(Fragment, { key: 0 }, renderList(bones2.value, (bone, idx) => {
+                  unref(boneStyleRW)() === "ellipse" ? (openBlock(true), createElementBlock(Fragment, { key: 0 }, renderList(bones2.value, (bone, idx) => {
                     return openBlock(), createBlock(unref(J), {
                       key: "ebone-" + idx,
                       config: bone.getEllipseConfig(joints2.value, currentStageScale.value)
@@ -25795,7 +25772,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-80732d03"]]);
+const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-0812804e"]]);
 const _sfc_main = /* @__PURE__ */ defineComponent({
   __name: "App",
   setup(__props) {
@@ -25803,11 +25780,13 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
     const editorWidth = ref(512);
     const editorHeight = ref(512);
     const lastStageStatus = ref(null);
-    let storageRW;
+    let jsonStrRW;
+    let boneStyleRW;
     function showEditorDialog(e2) {
       editorWidth.value = e2.detail.width;
       editorHeight.value = e2.detail.height;
-      storageRW = e2.detail.storageRW;
+      jsonStrRW = e2.detail.jsonStrRW;
+      boneStyleRW = e2.detail.boneStyleRW;
       showEditor.value = true;
     }
     function handleSavingStatus(ss) {
@@ -25831,9 +25810,10 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
             height: editorHeight.value,
             closeCallback,
             lastStageStatus: lastStageStatus.value,
-            storageRW: unref(storageRW),
+            jsonStrRW: unref(jsonStrRW),
+            boneStyleRW: unref(boneStyleRW),
             onAfterClose: handleSavingStatus
-          }, null, 8, ["width", "height", "closeCallback", "lastStageStatus", "storageRW"])
+          }, null, 8, ["width", "height", "closeCallback", "lastStageStatus", "jsonStrRW", "boneStyleRW"])
         ]),
         _: 1
       }, 8, ["visible"]);
@@ -25849,44 +25829,34 @@ const ComfyUIPreset = t(Qr, {
 });
 comfyApp.registerExtension({
   name: "endericedragon.comfyui-openpose-editor-konva",
-  settings: [
-    {
-      id: OPTIONS.boneStyle,
-      name: "Select bone style",
-      type: "combo",
-      defaultValue: "ellipse",
-      options: [
-        { text: "Ellipse", value: "ellipse" },
-        { text: "Line", value: "line" }
-      ],
-      onChange(newValue, _oldValue) {
-        postTextData(ROUTES["set-bone-style"], newValue);
-      }
-    }
-  ],
   async nodeCreated(node, app) {
     if (node.comfyClass === "comfyui-openpose-editor-konva-node") {
-      let widgetReadWrite = function(val) {
-        if (val) {
-          skeletonJsonWidget.value = val;
-        } else {
-          return skeletonJsonWidget.value;
-        }
-      };
       const widgets = node.widgets;
+      if (widgets.length === 0) {
+        return;
+      }
       const widthWidget = widgets == null ? void 0 : widgets.find((w2) => w2.name.toLowerCase() === "width");
       const heightWidget = widgets == null ? void 0 : widgets.find((w2) => w2.name.toLowerCase() === "height");
+      const boneStyleWidget = widgets == null ? void 0 : widgets.find((w2) => w2.name.toLowerCase() === "bone_style");
       const skeletonJsonWidget = widgets == null ? void 0 : widgets.find((w2) => w2.name.toLowerCase() === "skeleton_json_str");
-      skeletonJsonWidget.hidden = true;
-      app.api.addEventListener("send-skeleton-json", (e2) => {
-        skeletonJsonWidget.value = JSON.stringify(e2.detail);
-      });
+      const widgetRW = (widget) => {
+        return (val) => {
+          if (val) {
+            widget.value = val;
+          } else {
+            return widget.value;
+          }
+        };
+      };
+      const boneStyleRW = widgetRW.bind(null, boneStyleWidget);
+      const jsonStrRW = widgetRW.bind(null, skeletonJsonWidget);
       node.addWidget("button", "Open Editor", null, () => {
         window.dispatchEvent(new CustomEvent(EVENTS$1.showEditor, {
           detail: {
             width: widthWidget == null ? void 0 : widthWidget.value,
             height: heightWidget == null ? void 0 : heightWidget.value,
-            storageRW: widgetReadWrite
+            jsonStrRW,
+            boneStyleRW
           }
         }));
       });

@@ -11,11 +11,6 @@ import torch
 THIS_NODE_DIR = pathlib.Path(__file__).parent
 
 
-def use_routes() -> dict[str, str]:
-    with open(THIS_NODE_DIR / "src" / "routes.json", "r") as f:
-        routes = json.load(f)
-    return routes
-
 
 def draw_coco18_cv2(
     canvas_width: int,

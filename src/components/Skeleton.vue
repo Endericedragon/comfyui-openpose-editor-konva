@@ -7,7 +7,7 @@ import { Stage as VStage, Layer as VLayer, Circle as VCircle, Image as VImage, R
 import { setMousePattern, resetMousePattern } from "@/myUtils";
 import { StageStatus } from "@/statusCache";
 import { Joint, DEFAULT_JOINTS, DEFAULT_BONES, scaleJoints, SerializedJoints } from "@/defaultCoco18";
-import { comfyApp, EMPTY_BASE64, OPTIONS } from "@/constants";
+import { comfyApp, EMPTY_BASE64 } from "@/constants";
 
 const emits = defineEmits(["afterClose"]);
 
@@ -28,12 +28,16 @@ const props = defineProps({
   lastStageStatus: {
     type: StageStatus,
   },
-  storageRW: {
+  jsonStrRW: {
     type: Function as PropType<(val?: string) => string | null>,
-  }
+  },
+  boneStyleRW: {
+    type: Function as PropType<(val?: string) => string | null>,
+  },
 });
 const [stageWidth, stageHeight] = [props.width, props.height];
-const storageRW: (val?: string) => string | null = props.storageRW;
+const jsonStrRW = props.jsonStrRW;
+const boneStyleRW = props.boneStyleRW;
 // 初始的关节位置、名字和颜色。
 // 在onMount中，会主动找后端同步最新的骨骼数据。
 const joints = ref<Joint[]>((() => {
@@ -198,13 +202,13 @@ function handleWheel(e: Konva.KonvaEventObject<WheelEvent>) {
 function handleSaveSkeleton() {
   const serializedJoints = SerializedJoints.fromJoints(joints.value, stageWidth, stageHeight);
   const jsonStr = serializedJoints.serialize();
-  storageRW(jsonStr);
+  jsonStrRW(jsonStr);
 }
 /**
  * 从后端加载骨骼图JSON
  */
 function tryLoadSkeletonFromWidget() {
-  const jsonStr = storageRW();
+  const jsonStr = jsonStrRW();
   const info = SerializedJoints.deserialize(jsonStr);
   if (!info) {
     return;
@@ -318,10 +322,6 @@ function handleResetSkeleton() {
   joints.value = DEFAULT_JOINTS();
   scaleJoints(joints.value, stageWidth, stageHeight);
 }
-
-function useEllipseBoneStyle() {
-  return comfyApp.extensionManager.setting.get(OPTIONS.boneStyle) === "ellipse";
-}
 // 配置全局事件监听器，保证中键释放时关闭画布拖拽。
 const skeletonContainer = ref<Element>();
 onMounted(() => {
@@ -407,7 +407,7 @@ onUnmounted(() => {
         <v-image :config="bgConfig" :key="bgImgCount" />
       </v-layer>
       <v-layer>
-        <v-ellipse v-if="useEllipseBoneStyle()" v-for="(bone, idx) in bones" :key="'ebone-' + idx"
+        <v-ellipse v-if="boneStyleRW() === 'ellipse'" v-for="(bone, idx) in bones" :key="'ebone-' + idx"
           :config="bone.getEllipseConfig(joints, currentStageScale)"></v-ellipse>
         <v-line v-else v-for="(bone, idx) in bones" :key="'bone-' + idx" :config="{
           points: bone.getKonvaBonePoints(joints),

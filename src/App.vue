@@ -9,12 +9,14 @@ const showEditor = ref(false);
 const editorWidth = ref(512);
 const editorHeight = ref(512);
 const lastStageStatus = ref<null | StageStatus>(null);
-let storageRW: (val?: string) => string | null;
+let jsonStrRW: (val?: string) => string | null;
+let boneStyleRW: (val?: string) => string | null;
 
 function showEditorDialog(e: CustomEvent) {
   editorWidth.value = e.detail.width;
   editorHeight.value = e.detail.height;
-  storageRW = e.detail.storageRW;
+  jsonStrRW = e.detail.jsonStrRW;
+  boneStyleRW = e.detail.boneStyleRW;
   showEditor.value = true;
 }
 
@@ -34,8 +36,8 @@ onUnmounted(() => {
 <template>
   <Dialog v-model:visible="showEditor" style="max-width: 85vw; max-height: 85vh;">
     <template #container="{ closeCallback }">
-      <Skeleton :width="editorWidth" :height="editorHeight" :closeCallback="closeCallback" :lastStageStatus :storageRW
-        @after-close="handleSavingStatus"></Skeleton>
+      <Skeleton :width="editorWidth" :height="editorHeight" :closeCallback="closeCallback" :lastStageStatus :jsonStrRW
+        :boneStyleRW @after-close="handleSavingStatus"></Skeleton>
     </template>
   </Dialog>
 </template>
