@@ -10,7 +10,7 @@ ComfyUI-Openpose-Editor-Konva is a ComfyUI custom node that provides an Openpose
 
 ### 怎么用？- How to use this node?
 
-1. 搜索`OpenPoseEditorKonva Controller`节点，并将其添加到您的工作流。Search for `OpenPoseEditorKonva Controller` node, and add it to your workflow.
+1. 搜索`OEKonva Editor`节点，并将其添加到您的工作流。Search for `OEKonva Editor` node, and add it to your workflow.
 2. 点击节点上的`Open Editor`按钮。Click the `Open Editor` button on the node.
 
    ![image-20260315144547423](./README.assets/image-20260315144547423.png)
