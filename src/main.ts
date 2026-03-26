@@ -37,7 +37,7 @@ comfyApp.registerExtension({
         }
     ],
     async nodeCreated(node, app) {
-        if (node.comfyClass === "OpenPoseEditorKonva Controller") {
+        if (node.comfyClass === "comfyui-openpose-editor-konva-node") {
             const widgets = node.widgets;
             const widthWidget = widgets?.find(w => w.name.toLowerCase() === "width");
             const heightWidget = widgets?.find(w => w.name.toLowerCase() === "height");

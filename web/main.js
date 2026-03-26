@@ -25865,7 +25865,7 @@ comfyApp.registerExtension({
     }
   ],
   async nodeCreated(node, app) {
-    if (node.comfyClass === "OpenPoseEditorKonva Controller") {
+    if (node.comfyClass === "comfyui-openpose-editor-konva-node") {
       let widgetReadWrite = function(val) {
         if (val) {
           skeletonJsonWidget.value = val;
