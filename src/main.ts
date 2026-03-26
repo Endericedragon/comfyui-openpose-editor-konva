@@ -6,8 +6,9 @@ import Tooltip from 'primevue/tooltip';
 import Aura from '@primeuix/themes/aura';
 import { definePreset } from "@primeuix/themes"
 // shared data types
-import { comfyApp, utils, EVENTS } from "./constants.js";
+import { comfyApp, utils, EVENTS, OPTIONS, ROUTES } from "./constants.js";
 import App from "./App.vue"
+import { postTextData } from "./myUtils.js";
 // extensions/comfyui-openpose-editor-konva是固定的，后续内容和/web目录有关
 const CSS_PATH = "extensions/comfyui-openpose-editor-konva/assets/style.css";
 utils.addStylesheet(CSS_PATH);
@@ -20,6 +21,21 @@ const ComfyUIPreset = definePreset(Aura, {
 
 comfyApp.registerExtension({
     name: "endericedragon.comfyui-openpose-editor-konva",
+    settings: [
+        {
+            id: OPTIONS.boneStyle,
+            name: "Select bone style",
+            type: "combo",
+            defaultValue: "ellipse",
+            options: [
+                { text: "Ellipse", value: "ellipse" },
+                { text: "Line", value: "line" }
+            ],
+            onChange(newValue, _oldValue) {
+                postTextData(ROUTES["set-bone-style"], newValue);
+            },
+        }
+    ],
     async nodeCreated(node, app) {
         if (node.comfyClass === "OpenPoseEditorKonva Controller") {
             const widgets = node.widgets;

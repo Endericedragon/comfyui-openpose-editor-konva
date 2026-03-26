@@ -1,4 +1,5 @@
 from .types import Coco18Data, SkeletonData, PoseKeypoint
+from typing import Literal
 
 import cv2
 import json
@@ -20,6 +21,7 @@ def draw_coco18_cv2(
     canvas_width: int,
     canvas_height: int,
     coco18_data: Coco18Data | None,
+    bone_style: Literal["line", "ellipse"],
 ) -> torch.Tensor:
     """
     接受coco18数据，使用cv2绘制并返回torch.Tensor
@@ -34,7 +36,9 @@ def draw_coco18_cv2(
     """
     msaa_scale: int = 3
     msaa_scale_half: float = (msaa_scale - 1) / 2.0 + 1
-    img = np.zeros((canvas_height * msaa_scale, canvas_width * msaa_scale, 3), dtype=np.uint8)
+    img = np.zeros(
+        (canvas_height * msaa_scale, canvas_width * msaa_scale, 3), dtype=np.uint8
+    )
     scaled_than_512: float = min(canvas_width, canvas_height) / 512.0
     if coco18_data is None:
         coco18_data = load_default_coco18()
@@ -50,9 +54,14 @@ def draw_coco18_cv2(
         radius_x = round(
             math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2) / 2
         )  # half bone length
-        radius_y = round(4 * scaled_than_512 * msaa_scale)  # maximum bone width (half)
+        radius_y = round(
+            4 * scaled_than_512 * msaa_scale_half
+        )  # maximum bone width (half)
         angle = math.atan2(y2 - y1, x2 - x1) * 180 / math.pi
-        cv2.ellipse(img, center, (radius_x, radius_y), angle, 0, 360, color, -1)
+        if bone_style == "line":
+            cv2.line(img, (int(x1), int(y1)), (int(x2), int(y2)), color, radius_y * 2, cv2.LINE_AA)
+        else:
+            cv2.ellipse(img, center, (radius_x, radius_y), angle, 0, 360, color, -1, cv2.LINE_AA)
     for joint in coco18_data["joints"]:
         x, y, color = joint
         x *= msaa_scale
@@ -60,12 +69,14 @@ def draw_coco18_cv2(
         r = round(6 * scaled_than_512 * msaa_scale_half)
         center = round(x), round(y)
         cv2.circle(img, center, r, color, -1)
-    blurred = cv2.resize(cv2.GaussianBlur(img, (3, 3), 0), (canvas_width, canvas_height))
-    tensor = torch.from_numpy(blurred.astype(np.float32) / 255.0).unsqueeze(0)
+    shrunk = cv2.resize(img, (canvas_width, canvas_height))
+    tensor = torch.from_numpy(shrunk.astype(np.float32) / 255.0).unsqueeze(0)
     return tensor
 
 
-def draw_skeleton(skeleton_data: SkeletonData) -> torch.Tensor:
+def draw_skeleton(
+    skeleton_data: SkeletonData, bone_style: Literal["line", "ellipse"] = "ellipse"
+) -> torch.Tensor:
     """
     接受被用户修改过的skeleton数据，用它修正默认的coco18数据，以重现前端的骨骼图像
 
@@ -82,7 +93,9 @@ def draw_skeleton(skeleton_data: SkeletonData) -> torch.Tensor:
         x, y = pose_keypoints_2d[i], pose_keypoints_2d[i + 1]
         coco18_data["joints"][i // 3] = (x, y, coco18_data["joints"][i // 3][2])
     # 1. 调用 draw_pose_coco18_only 函数
-    return draw_coco18_cv2(skeleton_data["width"], skeleton_data["height"], coco18_data)
+    return draw_coco18_cv2(
+        skeleton_data["width"], skeleton_data["height"], coco18_data, bone_style
+    )
 
 
 def load_default_coco18() -> Coco18Data:

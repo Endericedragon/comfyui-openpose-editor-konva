@@ -25,4 +25,24 @@ function tryParseJson(jsonStr: string) {
     }
 }
 
-export { triple2ColorStr, setMousePattern, resetMousePattern, tryParseJson };
+async function postTextData(route: string, text: string) {
+    const resp = await comfyApp.api.fetchApi(route, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: text
+    });
+    switch (resp.status) {
+        case 200:
+            return resp.text();
+        default:
+            comfyApp.extensionManager.toast.add({
+                severity: "error",
+                summary: "RPC Error",
+                detail: `Status code = ${resp.status}`,
+                life: 3000
+            });
+            return Promise.reject(resp.status);
+    }
+}
+
+export { triple2ColorStr, setMousePattern, resetMousePattern, tryParseJson, postTextData };

@@ -1,3 +1,4 @@
+from aiohttp import web
 from server import PromptServer
 from .utils import (
     SkeletonData,
@@ -6,11 +7,18 @@ from .utils import (
     draw_coco18_cv2,
     pose_kp2json,
     scale_default_coco18,
+    THIS_NODE_DIR,
 )
+from typing import Literal
 
 import json
 import nodes
 import torch
+
+with open(THIS_NODE_DIR / "src" / "routes.json", "r", encoding="utf-8") as f:
+    routes = json.load(f)
+
+bone_style: Literal["line", "ellipse"] = "line"
 
 
 class EditorController:
@@ -65,6 +73,8 @@ class EditorController:
     async def run(
         self, width: int, height: int, preview_switch: bool, skeleton_json_str: str
     ):
+        global bone_style
+        print(bone_style)
         skeleton_json: SkeletonData = dict()  # type: ignore
         try:
             skeleton_json: SkeletonData = json.loads(skeleton_json_str)
@@ -75,14 +85,13 @@ class EditorController:
             and skeleton_json.get("height", -1) == height
         ):
             # 仅当记忆的尺寸和前端传来的一致，才能复用记忆
-            img_tensor = draw_skeleton(skeleton_json)
+            img_tensor = draw_skeleton(skeleton_json, bone_style)
         else:
             # skeleton_json_str为空，或需要弃用记忆
             # 先创建默认骨骼，再用它给skeleton_json赋值
             print(f"Using default skeleton, resolution = {width} x {height}")
             scaled_coco18 = scale_default_coco18(width, height)
-            default_img = draw_coco18_cv2(width, height, scaled_coco18)
-            img_tensor = default_img
+            img_tensor = draw_coco18_cv2(width, height, scaled_coco18, bone_style)
             skeleton_json = coco2skeleton(scaled_coco18, width, height)
             # 发送skeleton_json_str到前端，前端会更新widget的值
             PromptServer.instance.send_sync("send-skeleton-json", skeleton_json)
@@ -95,7 +104,8 @@ class EditorController:
     def IS_CHANGED(
         cls, width: int, height: int, preview_switch: bool, skeleton_json_str: str
     ):
-        return "{}{}{}".format(skeleton_json_str, width, height)
+        global bone_style
+        return "{}{}{}{}".format(skeleton_json_str, width, height, bone_style)
 
 
 class PoseKeypoint2Json:
@@ -117,6 +127,16 @@ class PoseKeypoint2Json:
     def to_json(self, image: torch.Tensor, pose_keypoint: list):
         res = pose_kp2json(image, pose_keypoint)
         return (str(res),)
+
+
+@PromptServer.instance.routes.post(routes["set-bone-style"])
+async def set_bone_style(req: web.Request):
+    global bone_style
+    bruh = await req.text()
+    assert bruh in {"line", "ellipse"}
+    bone_style = bruh  # type: ignore
+    print(f"Setting bone style to {bone_style}.")
+    return web.json_response(data={"bone_style": bone_style})
 
 
 __all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS", "WEB_DIRECTORY"]

@@ -1,4 +1,3 @@
 {
-  "send-skeleton-json-to-backend": "/oe-konva/send-skeleton-json-to-backend",
-  "get-skeleton-json-from-backend": "/oe-konva/get-skeleton-json-from-backend"
+  "set-bone-style": "/oe-konva/set-bone-style"
 }
