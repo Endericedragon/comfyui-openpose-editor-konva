@@ -9,7 +9,6 @@ from .utils import (
     draw_skeleton,
     draw_coco18_cv2,
     scale_default_coco18,
-    THIS_NODE_DIR,
 )
 from typing import Literal
 

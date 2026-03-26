@@ -20,7 +20,7 @@ const ComfyUIPreset = definePreset(Aura, {
 
 comfyApp.registerExtension({
     name: "endericedragon.comfyui-openpose-editor-konva",
-    async nodeCreated(node, app) {
+    async nodeCreated(node, _app) {
         if (node.comfyClass === "comfyui-openpose-editor-konva-node") {
             const widgets = node.widgets;
             if (widgets.length === 0) { return; }
@@ -29,20 +29,18 @@ comfyApp.registerExtension({
             const boneStyleWidget = widgets?.find(w => w.name.toLowerCase() === "bone_style");
             // 隐藏skeleton_json_str，因为它是用来传输数据的，前端不需要它
             const skeletonJsonWidget = widgets?.find(w => w.name.toLowerCase() === "skeleton_json_str");
-            // skeletonJsonWidget.hidden = true;
+            skeletonJsonWidget.hidden = true;
             // 组件读写
             type WidgetType = typeof widgets[0];
-            const widgetRW = (widget: WidgetType) => {
-                return (val?: string) => {
-                    if (val) {
-                        widget.value = val;
-                    } else {
-                        return widget.value as string;
-                    }
-                };
+            const widgetRW = (widget: WidgetType) => (val?: string) => {
+                if (val) {
+                    widget.value = val;
+                } else {
+                    return widget.value as string;
+                }
             };
-            const boneStyleRW = widgetRW.bind(null, boneStyleWidget);
-            const jsonStrRW = widgetRW.bind(null, skeletonJsonWidget);
+            const boneStyleRW = widgetRW(boneStyleWidget);
+            const jsonStrRW = widgetRW(skeletonJsonWidget);
             // 加个按钮替代右键菜单吧
             node.addWidget("button", "Open Editor", null, () => {
                 window.dispatchEvent(new CustomEvent(EVENTS.showEditor, {
