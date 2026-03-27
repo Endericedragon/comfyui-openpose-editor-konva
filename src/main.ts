@@ -8,7 +8,6 @@ import { definePreset } from "@primeuix/themes"
 // shared data types
 import { comfyApp, utils, EVENTS } from "./constants.js";
 import App from "./App.vue"
-import { warnInvalidJSON } from "./myUtils.js";
 // extensions/comfyui-openpose-editor-konva是固定的，后续内容和/web目录有关
 const CSS_PATH = "extensions/comfyui-openpose-editor-konva/assets/style.css";
 utils.addStylesheet(CSS_PATH);
@@ -52,7 +51,7 @@ comfyApp.registerExtension({
                 // widthRW(e.detail["width"]);
                 // heightRW(e.detail["height"]);
                 jsonStrRW(JSON.stringify(e.detail));
-                warnInvalidJSON();
+                // warnInvalidJSON();
             });
             // 加个按钮替代右键菜单吧
             node.addWidget("button", "Open Editor", null, () => {

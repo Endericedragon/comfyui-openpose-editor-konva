@@ -17,7 +17,7 @@ ComfyUI-Openpose-Editor-Konva is a ComfyUI custom node that provides an Openpose
 
 3. 编辑器将会出现，您可拖动关节点调整骨骼姿势。鼠标滚轮可缩放画面，鼠标中键拖动可拖动画布。The editor would appear, and you could adjust the gesture of the skeleton by dragging those colored joints. Notice that you could also scroll to zoom it / out, and drag with the middle mouse button to move the canvas.
 
-   ![msedge_Fv1ZOgQbHp](./README.assets/msedge_Fv1ZOgQbHp.png)
+   ![msedge_NVfzTZi7tC](./README.assets/msedge_NVfzTZi7tC.png)
 
 ## 开发配置步骤 - Development Configuration Steps
 

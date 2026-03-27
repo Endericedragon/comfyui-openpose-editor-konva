@@ -25853,7 +25853,6 @@ comfyApp.registerExtension({
       const heightRW = widgetRW(heightWidget);
       app.api.addEventListener("send-skeleton-json", (e2) => {
         jsonStrRW(JSON.stringify(e2.detail));
-        warnInvalidJSON();
       });
       node.addWidget("button", "Open Editor", null, () => {
         window.dispatchEvent(new CustomEvent(EVENTS$1.showEditor, {
