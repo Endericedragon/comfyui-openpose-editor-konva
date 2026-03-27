@@ -25839,6 +25839,7 @@ comfyApp.registerExtension({
       const heightWidget = widgets == null ? void 0 : widgets.find((w2) => w2.name.toLowerCase() === "height");
       const boneStyleWidget = widgets == null ? void 0 : widgets.find((w2) => w2.name.toLowerCase() === "bone_style");
       const skeletonJsonWidget = widgets == null ? void 0 : widgets.find((w2) => w2.name.toLowerCase() === "skeleton_json_str");
+      skeletonJsonWidget.hidden = true;
       const widgetRW = (widget) => (val) => {
         if (val) {
           widget.value = val;
@@ -25848,6 +25849,8 @@ comfyApp.registerExtension({
       };
       const boneStyleRW = widgetRW(boneStyleWidget);
       const jsonStrRW = widgetRW(skeletonJsonWidget);
+      const widthRW = widgetRW(widthWidget);
+      const heightRW = widgetRW(heightWidget);
       app.api.addEventListener("send-skeleton-json", (e2) => {
         jsonStrRW(JSON.stringify(e2.detail));
         warnInvalidJSON();
@@ -25855,8 +25858,8 @@ comfyApp.registerExtension({
       node.addWidget("button", "Open Editor", null, () => {
         window.dispatchEvent(new CustomEvent(EVENTS$1.showEditor, {
           detail: {
-            width: widthWidget == null ? void 0 : widthWidget.value,
-            height: heightWidget == null ? void 0 : heightWidget.value,
+            width: widthRW(),
+            height: heightRW(),
             jsonStrRW,
             boneStyleRW
           }

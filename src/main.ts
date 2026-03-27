@@ -30,7 +30,7 @@ comfyApp.registerExtension({
             const boneStyleWidget = widgets?.find(w => w.name.toLowerCase() === "bone_style");
             // 隐藏skeleton_json_str，因为它是用来传输数据的，前端不需要它
             const skeletonJsonWidget = widgets?.find(w => w.name.toLowerCase() === "skeleton_json_str");
-            // skeletonJsonWidget.hidden = true;
+            skeletonJsonWidget.hidden = true;
             // 组件读写
             type WidgetType = typeof widgets[0];
             const widgetRW = (widget: WidgetType) => (val?: string) => {
@@ -42,19 +42,29 @@ comfyApp.registerExtension({
             };
             const boneStyleRW = widgetRW(boneStyleWidget);
             const jsonStrRW = widgetRW(skeletonJsonWidget);
+            const widthRW = widgetRW(widthWidget);
+            const heightRW = widgetRW(heightWidget);
             // @ts-ignore
             // 当后端发现JSON不对劲时，通知前端更新正确的JSON
             app.api.addEventListener("send-skeleton-json", (e: CustomEvent) => {
                 // 收到skeleton_json_str后，更新widget的值
+                // 由于从后端发来，故必然正确
+                // widthRW(e.detail["width"]);
+                // heightRW(e.detail["height"]);
                 jsonStrRW(JSON.stringify(e.detail));
                 warnInvalidJSON();
             });
             // 加个按钮替代右键菜单吧
             node.addWidget("button", "Open Editor", null, () => {
+                // const content = tryParseJson(jsonStrRW());
+                // if (content && content["width"] && content["height"]) {
+                //     widthRW(content["width"]);
+                //     heightRW(content["height"]);
+                // }
                 window.dispatchEvent(new CustomEvent(EVENTS.showEditor, {
                     detail: {
-                        width: widthWidget?.value,
-                        height: heightWidget?.value,
+                        width: widthRW(),
+                        height: heightRW(),
                         jsonStrRW,
                         boneStyleRW,
                     }

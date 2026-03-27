@@ -10,7 +10,7 @@ function setMousePattern() {
 function resetMousePattern() {
     document.body.style.cursor = "default";
 }
-function tryParseJson(jsonStr: string) {
+function tryParseJson(jsonStr: string): Object | null {
     try {
         return JSON.parse(jsonStr);
     } catch (e) {
