@@ -39,12 +39,8 @@ const [stageWidth, stageHeight] = [props.width, props.height];
 const jsonStrRW = props.jsonStrRW;
 const boneStyleRW = props.boneStyleRW;
 // 初始的关节位置、名字和颜色。
-// 在onMount中，会主动找后端同步最新的骨骼数据。
-const joints = ref<Joint[]>((() => {
-  let res = DEFAULT_JOINTS();
-  scaleJoints(res, stageWidth, stageHeight);
-  return res;
-})());
+// 在onMount中，会主动找后端同步最新的骨骼数据。如果同步失败，则使用默认的。
+const joints = ref<Joint[]>();
 const moveAllJoints = ref(false);
 // 初始的骨头连接关系和颜色。均为定值。
 const bones = ref(DEFAULT_BONES);
@@ -209,11 +205,15 @@ function handleSaveSkeleton() {
  */
 function tryLoadSkeletonFromWidget() {
   const jsonStr = jsonStrRW();
-  const info = SerializedJoints.deserialize(jsonStr);
+  let info = SerializedJoints.deserialize(jsonStr);
   if (!info) {
-    return;
+    let res = DEFAULT_JOINTS();
+    scaleJoints(res, stageWidth, stageHeight);
+    joints.value = SerializedJoints.fromJoints(res, stageWidth, stageHeight).toJoints();
+    console.log("length = ", joints.value.length);
+  } else {
+    joints.value = info.toJoints();
   }
-  joints.value = info.toJoints();
 }
 /**
  * 加载背景图片

@@ -124,9 +124,9 @@ class SerializedJoints {
      * @param jsonStr 待解析的json字符串
      * @returns 
      */
-    static deserialize(jsonStr: string): SerializedJoints {
+    static deserialize(jsonStr: string): SerializedJoints | null {
         let jsonData = tryParseJson(jsonStr);
-        return new SerializedJoints(jsonData.width, jsonData.height, jsonData.people[0].pose_keypoints_2d);
+        return jsonData ? new SerializedJoints(jsonData.width, jsonData.height, jsonData.people[0].pose_keypoints_2d) : null;
     }
 }
 

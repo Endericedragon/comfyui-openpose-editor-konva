@@ -1,4 +1,4 @@
-from .types import Coco18Data, SkeletonData, PoseKeypoint
+from .types import Coco18Json, SkeletonJson
 from typing import Literal
 
 import cv2
@@ -11,11 +11,10 @@ import torch
 THIS_NODE_DIR = pathlib.Path(__file__).parent
 
 
-
 def draw_coco18_cv2(
     canvas_width: int,
     canvas_height: int,
-    coco18_data: Coco18Data | None,
+    coco18_data: Coco18Json | None,
     bone_style: Literal["line", "ellipse"],
 ) -> torch.Tensor:
     """
@@ -54,9 +53,18 @@ def draw_coco18_cv2(
         )  # maximum bone width (half)
         angle = math.atan2(y2 - y1, x2 - x1) * 180 / math.pi
         if bone_style == "line":
-            cv2.line(img, (int(x1), int(y1)), (int(x2), int(y2)), color, radius_y * 2, cv2.LINE_AA)
+            cv2.line(
+                img,
+                (int(x1), int(y1)),
+                (int(x2), int(y2)),
+                color,
+                radius_y * 2,
+                cv2.LINE_AA,
+            )
         else:
-            cv2.ellipse(img, center, (radius_x, radius_y), angle, 0, 360, color, -1, cv2.LINE_AA)
+            cv2.ellipse(
+                img, center, (radius_x, radius_y), angle, 0, 360, color, -1, cv2.LINE_AA
+            )
     for joint in coco18_data["joints"]:
         x, y, color = joint
         x *= msaa_scale
@@ -70,7 +78,7 @@ def draw_coco18_cv2(
 
 
 def draw_skeleton(
-    skeleton_data: SkeletonData, bone_style: Literal["line", "ellipse"] = "ellipse"
+    skeleton_data: SkeletonJson, bone_style: Literal["line", "ellipse"] = "ellipse"
 ) -> torch.Tensor:
     """
     接受被用户修改过的skeleton数据，用它修正默认的coco18数据，以重现前端的骨骼图像
@@ -93,13 +101,13 @@ def draw_skeleton(
     )
 
 
-def load_default_coco18() -> Coco18Data:
+def load_default_coco18() -> Coco18Json:
     with open(THIS_NODE_DIR / "src" / "coco18_data.json", "r") as f:
-        data: Coco18Data = json.load(f)
+        data: Coco18Json = json.load(f)
     return data
 
 
-def scale_default_coco18(width: int, height: int) -> Coco18Data:
+def scale_default_coco18(width: int, height: int) -> Coco18Json:
     """
     缩放默认的 coco18 数据，以适应不同的宽度和高度
 
@@ -125,44 +133,7 @@ def scale_default_coco18(width: int, height: int) -> Coco18Data:
     return data
 
 
-def pose_kp2json(image_tensor: torch.Tensor, pose_keypoint: list[PoseKeypoint]):
-    """
-    将 pose_keypoints 数据转换为 JSON 字符串
-
-    Args:
-        image: 输入的图像张量，形状为 [1, H, W, 3]
-        pose_keypoints: 输入的 pose_keypoints 数据
-
-    Returns:
-        json_str: JSON 字符串，包含 "width", "height", "people" 三个字段
-
-    """
-    # 1. 从 image 张量中自动获取宽度和高度
-    # image: [1, H, W, 3]
-    image_height, image_width = image_tensor.shape[1:3]
-
-    # 2. 从复杂的 POSE_KEYPOINT 数据中提取出 "people" 列表
-    processed_people = []
-
-    for pose_kp in pose_keypoint:
-        people_in_dict = pose_kp.get("people", [])
-        for person in people_in_dict:
-            original_keypoints = person.get("pose_keypoints_2d", [])
-            num_points_to_copy = min(18 * 3, len(original_keypoints))
-            processed_people.append(
-                {"pose_keypoints_2d": original_keypoints[:num_points_to_copy]}
-            )
-
-    # 3. 准备要写入文件的最终数据结构
-    data_to_return = {
-        "width": int(image_width),
-        "height": int(image_height),
-        "people": processed_people,
-    }
-    return json.dumps(data_to_return)
-
-
-def coco2skeleton(data: Coco18Data, width: int, height: int) -> SkeletonData:
+def coco2skeleton(data: Coco18Json, width: int, height: int) -> SkeletonJson:
     """
     将 coco18 数据转换为骨骼数据
 
@@ -179,7 +150,7 @@ def coco2skeleton(data: Coco18Data, width: int, height: int) -> SkeletonData:
         bruh[3 * i] = each[0]
         bruh[3 * i + 1] = each[1]
         bruh[3 * i + 2] = 1
-    res: SkeletonData = {
+    res: SkeletonJson = {
         "width": width,
         "height": height,
         "people": [{"pose_keypoints_2d": bruh}],

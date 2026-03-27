@@ -1,10 +1,8 @@
-from aiohttp import web
-
 # V3 schema
 from comfy_api.v0_0_2 import ComfyExtension, io, ui
 from server import PromptServer
 from .utils import (
-    SkeletonData,
+    SkeletonJson,
     coco2skeleton,
     draw_skeleton,
     draw_coco18_cv2,
@@ -14,6 +12,14 @@ from typing import Literal
 
 import json
 import nodes
+
+
+def get_scaled_default_skeleton(
+    width: int, height: int, bone_style: Literal["line", "ellipse"]
+) -> SkeletonJson:
+    scaled_coco18 = scale_default_coco18(width, height)
+    img_tensor = draw_coco18_cv2(width, height, scaled_coco18, bone_style)
+    return coco2skeleton(scaled_coco18, width, height)
 
 
 class EditorNode(io.ComfyNode):
@@ -32,9 +38,10 @@ class EditorNode(io.ComfyNode):
                     "height", "Height", default=512, min=512, max=64 * 128, step=8
                 ),
                 io.Boolean.Input("preview_switch", "Preview Switch", default=True),
-                io.Combo.Input("bone_style", ["line", "ellipse"], "Bone Style", default="line"),
-                # 在前端中被隐藏，专门用来传输数据
-                io.String.Input("skeleton_json_str", "Skeleton JSON", default=""),
+                io.Combo.Input(
+                    "bone_style", ["line", "ellipse"], "Bone Style", default="line"
+                ),
+                io.String.Input("skeleton_json_str", "Skeleton JSON", multiline=True, default=""),
             ],
             outputs=[
                 io.Image.Output("Coco18Image", "Coco 18 Image"),
@@ -45,18 +52,25 @@ class EditorNode(io.ComfyNode):
 
     @classmethod
     def execute(
-        cls, width: int, height: int, preview_switch: bool, skeleton_json_str: str, bone_style: Literal["line", "ellipse"]
+        cls,
+        width: int,
+        height: int,
+        preview_switch: bool,
+        skeleton_json_str: str,
+        bone_style: Literal["line", "ellipse"],
     ) -> io.NodeOutput:
-        skeleton_json: SkeletonData = dict()  # type: ignore
+        skeleton_json: SkeletonJson = dict()  # type: ignore
         try:
-            skeleton_json: SkeletonData = json.loads(skeleton_json_str)
+            skeleton_json: SkeletonJson = json.loads(skeleton_json_str)
         except json.JSONDecodeError:
             pass
         if (
             skeleton_json.get("width", -1) == width
             and skeleton_json.get("height", -1) == height
+            and "people" in skeleton_json
+            and all(len(x["pose_keypoints_2d"]) >= 18 for x in skeleton_json["people"])
         ):
-            # 仅当记忆的尺寸和前端传来的一致，才能复用记忆
+            # 仅当记忆的尺寸和前端传来的一致且内容合法，才能复用记忆
             img_tensor = draw_skeleton(skeleton_json, bone_style)
         else:
             # skeleton_json_str为空，或需要弃用记忆
@@ -78,7 +92,12 @@ class EditorNode(io.ComfyNode):
 
     @classmethod
     def fingerprint_inputs(
-        cls, width: int, height: int, preview_switch: bool, skeleton_json_str: str, bone_style: Literal["line", "ellipse"]
+        cls,
+        width: int,
+        height: int,
+        preview_switch: bool,
+        skeleton_json_str: str,
+        bone_style: Literal["line", "ellipse"],
     ) -> str:
         return f"{width}{height}{bone_style}{skeleton_json_str}"
 
