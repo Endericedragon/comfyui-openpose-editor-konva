@@ -41,7 +41,9 @@ class EditorNode(io.ComfyNode):
                 io.Combo.Input(
                     "bone_style", ["line", "ellipse"], "Bone Style", default="line"
                 ),
-                io.String.Input("skeleton_json_str", "Skeleton JSON", multiline=True, default=""),
+                io.String.Input(
+                    "skeleton_json_str", "Skeleton JSON", multiline=True, default=""
+                ),
             ],
             outputs=[
                 io.Image.Output("Coco18Image", "Coco 18 Image"),
@@ -81,13 +83,11 @@ class EditorNode(io.ComfyNode):
             skeleton_json = coco2skeleton(scaled_coco18, width, height)
             # 发送skeleton_json_str到前端，前端会更新widget的值
             PromptServer.instance.send_sync("send-skeleton-json", skeleton_json)
-        # 保存到 ComfyUI temp 目录，以供前端显示预览图
-        res = nodes.PreviewImage().save_images(img_tensor) if preview_switch else dict()
-        res["result"] = img_tensor, json.dumps(skeleton_json)  # type: ignore
+        # 供前端显示预览图
         return io.NodeOutput(
             img_tensor,
             json.dumps(skeleton_json),
-            ui=ui.PreviewImage(img_tensor, cls=cls),
+            ui=ui.PreviewImage(img_tensor, cls=cls) if preview_switch else None,  # type: ignore
         )
 
     @classmethod
