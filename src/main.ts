@@ -83,5 +83,13 @@ comfyApp.registerExtension({
             })
             .directive('tooltip', Tooltip)
             .mount(mountPoint);
+        // 移除莫名其妙的mask。目前已知该mask一定会在使用konva的v-stage后出现，暂无很好的解决办法，只能在DOMContentLoaded后移除。
+        const weirdMask = document.querySelector('[data-pc-section="mask"]');
+        if (weirdMask) {
+            console.log("Removing weird mask...");
+            weirdMask.remove();
+        } else {
+            console.log("No weird mask found.");
+        }
     }
 });

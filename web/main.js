@@ -26105,12 +26105,6 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
     onUnmounted(() => {
       window.removeEventListener(EVENTS$1.showEditor, showEditorDialog);
     });
-    document.addEventListener("DOMContentLoaded", () => {
-      const weirdMask = document.querySelector('.p-blockui-mask.p-overlay-mask.p-overlay-mask-enter.p-blockui-mask-document.p-overlay-mask-leave[[data-pc-section="mask"]]');
-      if (weirdMask) {
-        weirdMask.remove();
-      }
-    });
     return (_ctx, _cache) => {
       return openBlock(), createBlock(unref(script$5), {
         visible: showEditor.value,
@@ -26186,6 +26180,13 @@ comfyApp.registerExtension({
         preset: ComfyUIPreset
       }
     }).directive("tooltip", Tooltip).mount(mountPoint);
+    const weirdMask = document.querySelector('[data-pc-section="mask"]');
+    if (weirdMask) {
+      console.log("Removing weird mask...");
+      weirdMask.remove();
+    } else {
+      console.log("No weird mask found.");
+    }
   }
 });
 //# sourceMappingURL=main.js.map

@@ -31,13 +31,6 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener(EVENTS.showEditor, showEditorDialog);
 });
-// 移除莫名其妙的mask。目前已知该mask一定会在使用konva的v-stage后出现，暂无很好的解决办法，只能在DOMContentLoaded后移除。
-document.addEventListener('DOMContentLoaded', () => {
-  const weirdMask = document.querySelector(".p-blockui-mask.p-overlay-mask.p-overlay-mask-enter.p-blockui-mask-document.p-overlay-mask-leave[[data-pc-section=\"mask\"]]");
-  if (weirdMask) {
-    weirdMask.remove();
-  }
-});
 </script>
 
 <template>
