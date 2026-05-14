@@ -34,8 +34,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <Dialog v-model:visible="showEditor" style="max-width: 85vw; max-height: 85vh;">
-    <template #container="{ closeCallback }">
+  <Dialog v-model:visible="showEditor">
+    <template #container="{ closeCallback }" style="max-width: 85vw; max-height: 85vh;">
       <Skeleton :width="editorWidth" :height="editorHeight" :closeCallback="closeCallback" :lastStageStatus :jsonStrRW
         :boneStyleRW @after-close="handleSavingStatus"></Skeleton>
     </template>

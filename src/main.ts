@@ -22,13 +22,12 @@ comfyApp.registerExtension({
     name: "endericedragon.comfyui-openpose-editor-konva",
     async nodeCreated(node, _app) {
         if (node.comfyClass === "comfyui-openpose-editor-konva-node") {
-            const widgets = node.widgets;
-            if (widgets.length === 0) { return; }
-            const widthWidget = widgets?.find(w => w.name.toLowerCase() === "width");
-            const heightWidget = widgets?.find(w => w.name.toLowerCase() === "height");
-            const boneStyleWidget = widgets?.find(w => w.name.toLowerCase() === "bone_style");
+            const widgets = node.widgets!;
+            const widthWidget = widgets?.find(w => w.name.toLowerCase() === "width")!;
+            const heightWidget = widgets?.find(w => w.name.toLowerCase() === "height")!;
+            const boneStyleWidget = widgets?.find(w => w.name.toLowerCase() === "bone_style")!;
             // 隐藏skeleton_json_str，因为它是用来传输数据的，前端不需要它
-            const skeletonJsonWidget = widgets?.find(w => w.name.toLowerCase() === "skeleton_json_str");
+            const skeletonJsonWidget = widgets?.find(w => w.name.toLowerCase() === "skeleton_json_str")!;
             skeletonJsonWidget.hidden = true;
             // 组件读写
             type WidgetType = typeof widgets[0];
@@ -54,7 +53,7 @@ comfyApp.registerExtension({
                 // warnInvalidJSON();
             });
             // 加个按钮替代右键菜单吧
-            node.addWidget("button", "Open Editor", null, () => {
+            node.addWidget("button", "Open Editor", "", () => {
                 // const content = tryParseJson(jsonStrRW());
                 // if (content && content["width"] && content["height"]) {
                 //     widthRW(content["width"]);
@@ -72,7 +71,7 @@ comfyApp.registerExtension({
         }
     },
     async setup() {
-        let mountPoint = document.createElement("div");
+        let mountPoint = document.createElement("span");
         mountPoint.id = "oe-konva-ui";
         document.body.appendChild(mountPoint);
         createApp(App)

@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.2.4] - 2026-5-14
+
+### Fixed
+
+Fixed the problem that stops users from interacting with ui.
+
 ## [0.2.3] - 2026-3-28
 
 ### Fixed
