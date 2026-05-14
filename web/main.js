@@ -25793,7 +25793,7 @@ const _sfc_main$1 = /* @__PURE__ */ defineComponent({
     return (_ctx, _cache) => {
       const _directive_tooltip = resolveDirective("tooltip");
       return openBlock(), createElementBlock(Fragment, null, [
-        createBaseVNode("div", _hoisted_1, [
+        createBaseVNode("span", _hoisted_1, [
           createBaseVNode("input", {
             type: "file",
             ref_key: "fileInputRef",
@@ -26079,7 +26079,7 @@ const _export_sfc = (sfc, props) => {
   }
   return target;
 };
-const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-662985c6"]]);
+const Skeleton = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["__scopeId", "data-v-6acebece"]]);
 const _sfc_main = /* @__PURE__ */ defineComponent({
   __name: "App",
   setup(__props) {
@@ -26105,10 +26105,17 @@ const _sfc_main = /* @__PURE__ */ defineComponent({
     onUnmounted(() => {
       window.removeEventListener(EVENTS$1.showEditor, showEditorDialog);
     });
+    document.addEventListener("DOMContentLoaded", () => {
+      const weirdMask = document.querySelector('.p-blockui-mask.p-overlay-mask.p-overlay-mask-enter.p-blockui-mask-document.p-overlay-mask-leave[[data-pc-section="mask"]]');
+      if (weirdMask) {
+        weirdMask.remove();
+      }
+    });
     return (_ctx, _cache) => {
       return openBlock(), createBlock(unref(script$5), {
         visible: showEditor.value,
-        "onUpdate:visible": _cache[0] || (_cache[0] = ($event) => showEditor.value = $event)
+        "onUpdate:visible": _cache[0] || (_cache[0] = ($event) => showEditor.value = $event),
+        style: { "max-width": "85vw", "max-height": "85vh" }
       }, {
         container: withCtx(({ closeCallback }) => [
           createVNode(Skeleton, {

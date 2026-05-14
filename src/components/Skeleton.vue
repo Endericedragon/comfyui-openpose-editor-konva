@@ -337,12 +337,10 @@ onUnmounted(() => {
 <template>
   <!-- <span>Actual Width: {{ actualWidth }}</span> -->
   <!-- 隐藏的输入栏，点击它就会加载图片并触发@change函数 -->
-  <div style="display: none">
+  <span style="display: none">
     <input type="file" ref="fileInputRef" accept="image/*" @change="handleLoadBg" />
     <input type="file" ref="jsonInputRef" accept="application/json" @change="handleLoadSkeleton" />
-  </div>
-
-
+  </span>
 
   <div class="oe-row">
     <InputGroup>
@@ -397,7 +395,7 @@ onUnmounted(() => {
       </InputGroupAddon>
     </InputGroup>
   </div>
-
+  
   <div class="skeleton-container">
     <v-stage :config="stageConfig" ref="stageRef" @mousedown="handleStageMidDrag" @wheel="handleWheel">
       <v-layer>

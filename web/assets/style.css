@@ -1328,16 +1328,16 @@
     content: "\e926";
 }
 
-.skeleton-container[data-v-662985c6] {
+.skeleton-container[data-v-6acebece] {
   max-width: 80vw;
   max-height: 70vh;
   overflow: hidden;
   border: dotted grey;
 }
-.sk-joint[data-v-662985c6]:hover {
+.sk-joint[data-v-6acebece]:hover {
   cursor: pointer;
 }
-.oe-row[data-v-662985c6] {
+.oe-row[data-v-6acebece] {
   position: absolute;
   display: flex;
   justify-content: flex-start;
@@ -1345,22 +1345,22 @@
   align-items: center;
   padding: 0.5em;
 }
-.oe-row[data-v-662985c6]>* {
+.oe-row[data-v-6acebece]>* {
   margin: 0.5em;
   transition: 0.2s;
   opacity: 0.4;
   z-index: 1 !important;
 }
-.oe-row[data-v-662985c6]>*:hover {
+.oe-row[data-v-6acebece]>*:hover {
   opacity: 1;
 }
-.opacity-slider[data-v-662985c6] {
+.opacity-slider[data-v-6acebece] {
   min-width: 8em;
 }
-.opacity-slider[data-v-662985c6]>* {
+.opacity-slider[data-v-6acebece]>* {
   min-width: 100%;
 }
-.bottom-right-things[data-v-662985c6] {
+.bottom-right-things[data-v-6acebece] {
   bottom: 0em;
   right: 0em;
 }

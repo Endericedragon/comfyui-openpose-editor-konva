@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-openpose-editor-konva"
 description = "Openpose editor implemented with konva."
-version = "0.2.4"
+version = "0.2.5"
 license = {file = "LICENSE"} 
 # classifiers = [
 #     # For OS-independent nodes (works on all operating systems)
