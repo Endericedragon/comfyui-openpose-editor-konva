@@ -13,13 +13,13 @@ export default defineConfig({
         lib: {
             entry: resolve(__dirname, './src/main.ts'),
             formats: ['es'],
-            fileName: 'main',
+            fileName: 'oeKonva',
             cssFileName: "style"
         },
         rollupOptions: {
             output: {
                 dir: 'web',
-                entryFileNames: 'main.js',
+                entryFileNames: 'oeKonva.js',
                 chunkFileNames: 'assets/[name].js',
                 assetFileNames: 'assets/[name][extname]'
             }

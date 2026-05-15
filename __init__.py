@@ -11,7 +11,6 @@ from .utils import (
 from typing import Literal
 
 import json
-import nodes
 
 
 def get_scaled_default_skeleton(
@@ -98,8 +97,9 @@ class EditorNode(io.ComfyNode):
         preview_switch: bool,
         skeleton_json_str: str,
         bone_style: Literal["line", "ellipse"],
-    ) -> str:
-        return f"{width}{height}{bone_style}{skeleton_json_str}"
+    ) -> int:
+        fingerprint = hash(f"{width}{height}{bone_style}{skeleton_json_str}")
+        return fingerprint
 
 
 class OEKonvaExtension(ComfyExtension):
