@@ -1,5 +1,11 @@
 # Change Log
 
+## [0.2.7] - 2026-5-14
+
+### Added
+
+Introducing vite-plugin-css-injected-by-js to get rid of CSS files.
+
 ## [0.2.6] - 2026-5-14
 
 ### Fixed

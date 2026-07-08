@@ -6,11 +6,12 @@ import Tooltip from 'primevue/tooltip';
 import Aura from '@primeuix/themes/aura';
 import { definePreset } from "@primeuix/themes"
 // shared data types
-import { comfyApp, utils, EVENTS } from "./constants.js";
+// import { comfyApp, utils, EVENTS } from "./constants.js";
+import { comfyApp, EVENTS } from "./constants.js";
 import App from "./App.vue"
-// extensions/comfyui-openpose-editor-konva是固定的，后续内容和/web目录有关
-const CSS_PATH = "extensions/comfyui-openpose-editor-konva/assets/style.css";
-utils.addStylesheet(CSS_PATH);
+// // extensions/comfyui-openpose-editor-konva是固定的，后续内容和/web目录有关
+// const CSS_PATH = "extensions/comfyui-openpose-editor-konva/assets/style.css";
+// utils.addStylesheet(CSS_PATH);
 // Copied from comfy-frontend-package
 const ComfyUIPreset = definePreset(Aura, {
     semantic: {
